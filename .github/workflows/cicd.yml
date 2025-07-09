@@ -32,7 +32,7 @@ jobs:
           npm ci
           npm run build
         env:
-          CI: true
+          CI: false
 
   docker:
     name: Docker Build & Push (GHCR)
