@@ -49,7 +49,7 @@ jobs:
           image: ${{ github.repository.name }}
           tag: ${{ github.sha }}
           registry: ghcr.io
-          extra_args: REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
+          extra_args: --build-arg REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
           password: ${{ github.token }}
 
   deploy:
