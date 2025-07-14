@@ -35,6 +35,7 @@ jobs:
           CI: false
 
   docker:
+    environment: prod 
     name: Docker Build & Push (GHCR)
     runs-on: ubuntu-latest
     needs: build
@@ -48,6 +49,7 @@ jobs:
           image: ${{ github.repository.name }}
           tag: ${{ github.sha }}
           registry: ghcr.io
+          extra_args: REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
           password: ${{ github.token }}
 
   deploy:
