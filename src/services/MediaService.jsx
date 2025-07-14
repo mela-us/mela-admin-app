@@ -8,7 +8,6 @@ export const MediaService = {
     if (!UPLOAD_TYPES.includes(type)) {
       return Promise.reject(new Error('Invalid upload type'));
     }
-    console.log('MediaService.getUploadUrl', name, type);
     return apiClient
       .get('/api/files/upload', {
         params: {
@@ -31,9 +30,7 @@ export const MediaService = {
         },
         timeout: 30000,
       })
-      .then((res) => {
-        return res;
-      })
+      .then((res) => res)
       .catch((err) => {
         return Promise.reject(err);
       });

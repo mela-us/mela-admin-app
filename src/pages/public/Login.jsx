@@ -18,7 +18,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (state.isAuthenticated) {
-      switch (state.user?.role) {
+      switch (state.user?.userRole) {
         case 'admin':
           navigate('/dashboard');
           break;
@@ -29,12 +29,28 @@ export default function LoginPage() {
           break;
       }
     }
-  }, [state.isAuthenticated, state.user?.role, navigate]);
+  }, [state.isAuthenticated, navigate]);
+
+  const validateEmailWithYup = (email) => {
+    try {
+      Yup.string().email().validateSync(email);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
 
   const usernameRequirements = [
     {
       label: 'Username not empty',
       test: (username) => username.length >= 1,
+    },
+    {
+      label: 'Valid email format',
+      test: (username) => {
+        if (!username) return false;
+        return validateEmailWithYup(username);
+      },
     },
   ];
 
@@ -42,6 +58,26 @@ export default function LoginPage() {
     {
       label: 'Password not empty',
       test: (password) => password.length >= 1,
+    },
+    {
+      label: 'At least 8 characters',
+      test: (password) => password.length >= 8,
+    },
+    {
+      label: 'At least 1 uppercase letter',
+      test: (password) => /[A-Z]/.test(password),
+    },
+    {
+      label: 'At least 1 lowercase letter',
+      test: (password) => /[a-z]/.test(password),
+    },
+    {
+      label: 'At least 1 number',
+      test: (password) => /\d/.test(password),
+    },
+    {
+      label: 'At least 1 special character',
+      test: (password) => /[!@#$%^&*(),.?":{}|<>]/.test(password),
     },
   ];
 
@@ -51,8 +87,16 @@ export default function LoginPage() {
       password: '',
     },
     validationSchema: Yup.object({
-      username: Yup.string().required('Vui lòng nhập tên đăng nhập'),
-      password: Yup.string().required('Vui lòng nhập mật khẩu'),
+      username: Yup.string()
+        .required('Vui lòng nhập tên đăng nhập')
+        .email('Vui lòng nhập địa chỉ email hợp lệ'),
+      password: Yup.string()
+        .required('Vui lòng nhập mật khẩu')
+        .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+        .matches(/[A-Z]/, 'Mật khẩu phải có ít nhất 1 chữ cái viết hoa')
+        .matches(/[a-z]/, 'Mật khẩu phải có ít nhất 1 chữ cái viết thường')
+        .matches(/\d/, 'Mật khẩu phải có ít nhất 1 số')
+        .matches(/[!@#$%^&*(),.?":{}|<>]/, 'Mật khẩu phải có ít nhất 1 ký tự đặc biệt'),
     }),
     onSubmit: async (values) => {
       setIsLoading(true);

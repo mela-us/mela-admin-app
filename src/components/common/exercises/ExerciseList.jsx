@@ -3,19 +3,18 @@ import {
   ArrowDownAZ,
   ArrowUpZA,
   BookOpen,
+  CircleCheck,
   Eye,
   FileText,
+  MoreVertical,
   Pencil,
   Plus,
   Search,
   Trash2,
   X,
-  MoreVertical,
-  CircleCheck,
   XCircle,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Textarea } from '../../../components/ui/textarea';
+import { Link } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,36 +29,39 @@ import {
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '../../../components/ui/dropdown-menu';
-import { Input } from '../../../components/ui/input';
-import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '../../../components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../../../components/ui/dropdown-menu';
+import { Input } from '../../../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
+import { Textarea } from '../../../components/ui/textarea';
+import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
+import { truncateText } from '../../../lib/utils';
 import { ExerciseService } from '../../../services/ExerciseService';
 
-export default function ExerciseList({ initialLectures, initialExercises, lectureParam }) {
+export default function ExerciseList({ exercises, setExercises, lectures, contributors, lectureParam }) {
+  const { state } = useAuth();
+  const { userRole } = state.user;
   const [rejectedReason, setRejectedReason] = useState('');
-  const [lectures, _] = useState(initialLectures.sort((a, b) => a.name.localeCompare(b.name)));
-  const [exercises, setExercises] = useState(initialExercises);
   const [selectedLectureFilter, setSelectedLectureFilter] = useState(lectureParam || 'all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('all');
+  const [selectedCreatorFilter, setSelectedCreatorFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     setSelectedLectureFilter(lectureParam || 'all');
@@ -67,12 +69,6 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
 
   const handleSort = (order) => {
     setSortOrder(order);
-    const sortedExercises = [...exercises].sort((a, b) => {
-      const aValue = a.exerciseName.toLowerCase();
-      const bValue = b.exerciseName.toLowerCase();
-      return order === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-    });
-    setExercises(sortedExercises);
   };
 
   const handleDeleteExercise = async (id) => {
@@ -81,22 +77,14 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
       const { message } = resData;
       setExercises(exercises.filter((ex) => ex.exerciseId !== id));
       toast.success({
-        title: 'Xóa bài luyện tập thành công',
-        description: message || 'Bài luyện tập đã được xóa thành công.',
+        title: 'Deelete Exercise Success',
+        description: message,
       });
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error deleting exercise:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error when deleting exercise';
       toast.error({
-        title: 'Lỗi xóa bài luyện tập',
-        description: msg || 'Không thể xóa bài luyện tập.',
+        title: 'Delete Exercise Error',
+        description: msg,
       });
     }
   };
@@ -111,71 +99,63 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
         ),
       );
       toast.success({
-        title: 'Phê duyệt bài luyện tập thành công',
-        description: message || 'Bài luyện tập đã được phê duyệt.',
+        title: 'Approve Exercise Success',
+        description: message,
       });
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error approving lecture:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error when approving exercise';
       toast.error({
-        title: 'Lỗi phê duyệt bài luyện tập',
-        description: msg || 'Không thể phê duyệt bài luyện tập.',
+        title: 'Approve Exercise Error',
+        description: msg,
       });
     }
   };
 
   const handleDenyExercise = async (id, reason) => {
-    reason = reason.trim() || 'Liên hệ quản trị viên để biết thêm chi tiết.';
+    reason = reason?.trim();
     try {
       const resData = await ExerciseService.denyExercise(id, reason);
       const { message } = resData;
       setExercises(
         exercises.map((exercise) =>
-          exercise.exerciseId === id ? { ...exercise, status: 'DENIED', reason } : exercise,
+          exercise.exerciseId === id
+            ? { ...exercise, status: 'DENIED', rejectedReason: reason ?? 'Liên hệ quản trị viên để biết thêm chi tiết' }
+            : exercise,
         ),
       );
       toast.success({
-        title: 'Từ chối bài luyện tập thành công',
-        description: message || 'Bài luyện tập đã bị từ chối.',
+        title: 'Deny Exercise Success',
+        description: message,
       });
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error denying lecture:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error when denying exercise';
       toast.error({
-        title: 'Lỗi từ chối bài luyện tập',
-        description: msg || 'Không thể từ chối bài luyện tập.',
+        title: 'Deny Exercise Error',
+        description: msg,
       });
     }
   };
 
   const getLectureName = (id) => {
     const lecture = lectures.find((l) => l.lectureId === id);
-    return lecture ? lecture.name : 'Chưa có';
+    return lecture ? lecture.name : 'Chưa có bài học';
+  };
+
+  const getCreatorName = (creator, maxLength = 100) => {
+    if (!creator) return 'Admin';
+    return truncateText(creator.fullName || creator.username || 'Contributor', maxLength);
   };
 
   const getStatusCount = (status) => {
-    return exercises.filter((exercise) => status === 'all' || exercise.status === status).length;
+    return exercises?.filter((exercise) => status === 'all' || exercise.status === status)?.length || 0;
   };
 
   const getStatusBadge = (status, reason) => {
     reason = reason?.trim() || 'Liên hệ quản trị viên để biết thêm chi tiết.';
     const styles = {
       PENDING: 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white',
-      DENIED: 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md hover:bg-red-700 cursor-pointer ring-2 ring-red-800',
+      DENIED:
+        'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md hover:bg-red-700 cursor-pointer ring-2 ring-red-800',
       VERIFIED: 'bg-gradient-to-r from-green-400 to-emerald-500 text-white',
     };
     return (
@@ -200,9 +180,7 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
                 </div>
               </DialogHeader>
               <div className="px-1 pb-2">
-                <div className="text-sm text-red-800 whitespace-pre-wrap leading-relaxed p-1 rounded-lg">
-                  {reason || 'Không có lý do cụ thể được cung cấp.'}
-                </div>
+                <div className="text-sm text-red-800 whitespace-pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
               </div>
             </DialogContent>
           </Dialog>
@@ -218,25 +196,33 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
     );
   };
 
-  const filteredExercises = exercises
-    .filter((exercise) => {
-      const lectureMatch = selectedLectureFilter === 'all' || exercise.lectureId === selectedLectureFilter;
-      const statusMatch = selectedStatusFilter === 'all' || exercise.status === selectedStatusFilter;
-      const searchMatch = searchQuery === '' || exercise.exerciseName.toLowerCase().includes(searchQuery.toLowerCase());
-      return lectureMatch && statusMatch && searchMatch;
-    })
-    .sort((a, b) => {
-      const aValue = a.exerciseName.toLowerCase();
-      const bValue = b.exerciseName.toLowerCase();
-      return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-    });
+  const filteredExercises =
+    exercises
+      ?.filter((exercise) => {
+        const lectureMatch = selectedLectureFilter === 'all' || exercise.lectureId === selectedLectureFilter;
+        const statusMatch = selectedStatusFilter === 'all' || exercise.status === selectedStatusFilter;
+        const creatorMatch =
+          userRole.toUpperCase() === 'ADMIN'
+            ? selectedCreatorFilter === 'all' ||
+              (selectedCreatorFilter === 'admin' && !exercise.createdBy) ||
+              (exercise.createdBy && exercise.createdBy === selectedCreatorFilter)
+            : true;
+        const searchMatch =
+          searchQuery === '' || exercise.exerciseName?.toLowerCase().includes(searchQuery.toLowerCase());
+        return lectureMatch && statusMatch && creatorMatch && searchMatch;
+      })
+      ?.sort((a, b) => {
+        const aValue = a.exerciseName?.toLowerCase() || '';
+        const bValue = b.exerciseName?.toLowerCase() || '';
+        return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+      }) || [];
 
   const clearFilters = () => {
     setSelectedLectureFilter('all');
     setSelectedStatusFilter('all');
+    setSelectedCreatorFilter('all');
     setSearchQuery('');
     setSortOrder('asc');
-    navigate('/exercises');
   };
 
   return (
@@ -247,13 +233,13 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
             <BookOpen className="h-7 w-7 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Quản lý bài luyện tập</h2>
-            <p className="text-gray-600 text-sm">Tổng cộng {exercises.length} bài luyện tập</p>
+            <h2 className="text-xl font-bold text-gray-700">Quản lý bài luyện tập</h2>
+            <p className="text-gray-600 text-sm">Tổng cộng {exercises?.length || 0} bài luyện tập</p>
           </div>
         </div>
         <Button
           asChild
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium px-5 py-2 rounded-3xl shadow transition-all duration-200"
+          className="button-bg-color text-white font-medium px-5 py-2 rounded-3xl shadow transition-all duration-200"
         >
           <Link to="/exercises/add">
             <Plus className="mr-2 h-5 w-5" /> Thêm mới
@@ -273,6 +259,44 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
               className="pl-10 pr-4 py-2.5 border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition-colors"
             />
           </div>
+          {userRole.toUpperCase() === 'ADMIN' && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`h-10 px-4 text-sm font-medium transition-all duration-200 ${
+                    selectedCreatorFilter === 'all'
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'ring-2 ring-green-500 bg-green-50 text-green-700'
+                  }`}
+                >
+                  {selectedCreatorFilter === 'all'
+                    ? 'Người tạo'
+                    : getCreatorName(contributors.find((c) => c.userId === selectedCreatorFilter) || null, 10)}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuGroup className="scroll-max-h-60 overflow-y-auto max-h-60">
+                  <DropdownMenuItem onClick={() => setSelectedCreatorFilter('all')} className="cursor-pointer">
+                    <span>Tất cả người tạo</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSelectedCreatorFilter('admin')} className="cursor-pointer">
+                    <span>Admin</span>
+                  </DropdownMenuItem>
+                  {contributors?.map((contributor) => (
+                    <DropdownMenuItem
+                      key={contributor.userId}
+                      onClick={() => setSelectedCreatorFilter(contributor.userId)}
+                      className="cursor-pointer"
+                    >
+                      <span>{contributor.fullName || contributor.username}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -292,9 +316,6 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
                 <DropdownMenuItem onClick={() => setSelectedLectureFilter('all')} className="cursor-pointer">
                   <span>Tất cả bài học</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSelectedLectureFilter('null')} className="cursor-pointer">
-                  <span>Chưa có bài học</span>
-                </DropdownMenuItem>
                 {lectures.map((lecture) => (
                   <DropdownMenuItem
                     key={lecture.lectureId}
@@ -312,7 +333,7 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
               { key: 'all', label: 'Tất cả', color: 'bg-gray-100 text-gray-700 hover:bg-gray-200' },
               { key: 'PENDING', label: 'Chờ duyệt', color: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
               { key: 'VERIFIED', label: 'Đã duyệt', color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-              { key: 'DENIED', label: 'Bị từ chối', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
+              { key: 'DENIED', label: 'Từ chối', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
             ].map(({ key, label, color }) => (
               <button
                 key={key}
@@ -354,7 +375,10 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        {(searchQuery || selectedLectureFilter !== 'all' || selectedStatusFilter !== 'all') && (
+        {(searchQuery ||
+          selectedLectureFilter !== 'all' ||
+          selectedStatusFilter !== 'all' ||
+          (userRole.toUpperCase() === 'ADMIN' && selectedCreatorFilter !== 'all')) && (
           <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
             <div className="flex flex-wrap gap-2 items-center">
               <span className="text-sm text-gray-600">Đang lọc theo </span>
@@ -373,7 +397,19 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
                   Trạng thái &quot;{selectedStatusFilter}&quot;
                 </Badge>
               )}
-              <span className="text-sm text-gray-500">({filteredExercises.length} kết quả)</span>
+              {userRole.toUpperCase() === 'ADMIN' && selectedCreatorFilter !== 'all' && (
+                <Badge variant="outline" className="bg-green-50 text-green-700">
+                  Người tạo &quot;
+                  {selectedCreatorFilter === 'admin'
+                    ? 'Admin'
+                    : getCreatorName(
+                      contributors.find((c) => c.userId === selectedCreatorFilter),
+                      50,
+                    )}
+                  &quot;
+                </Badge>
+              )}
+              <span className="text-sm text-gray-500">({filteredExercises?.length || 0} kết quả)</span>
             </div>
             <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" onClick={clearFilters}>
               Xóa bộ lọc
@@ -382,32 +418,48 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
         )}
       </div>
 
-      {filteredExercises.length === 0 ? (
+      {filteredExercises?.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-16 px-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
           <FileText className="h-16 w-16 text-gray-300 mb-4" />
           <h3 className="text-lg font-medium text-gray-600 mb-1">Không có bài luyện tập nào</h3>
           <p className="text-gray-500 mb-4 max-w-md">
             Không tìm thấy bài luyện tập nào phù hợp. Hãy thử điều chỉnh bộ lọc hoặc thêm bài luyện tập mới.
           </p>
+          <Link
+            className="group relative border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-400 hover:bg-purple-50/30 transition-all cursor-pointer"
+            to={`/exercises/add${selectedLectureFilter ? `?lecture=${selectedLectureFilter}` : ''}`}
+          >
+            <div className="flex items-center justify-center py-4 px-5">
+              <div className="flex items-center space-x-2 text-gray-500 group-hover:text-purple-600">
+                <Plus className="h-5 w-5" />
+                <span className="text-sm font-medium">Thêm bài luyện tập mới</span>
+              </div>
+            </div>
+          </Link>
         </div>
       ) : (
         <div className="overflow-x-auto border-b border-gray-200 shadow-xl">
           <Table>
             <TableHeader>
               <TableRow className="bg-gradient-to-r from-gray-200 to-gray-300 border-b hover:bg-gray-300 border-gray-200">
-                <TableHead className="py-3 font-semibold text-gray-700 w-[300px] rounded-tl-lg">Tên bài luyện tập</TableHead>
+                <TableHead className="py-3 font-semibold text-gray-700 w-[300px] rounded-tl-lg">
+                  Tên bài luyện tập
+                </TableHead>
                 <TableHead className="text-center py-3 font-semibold text-gray-700 w-[150px]">Bài học</TableHead>
                 <TableHead className="text-center py-3 font-semibold text-gray-700 w-[100px]">STT</TableHead>
                 <TableHead className="text-center py-3 font-semibold text-gray-700 w-[100px]">Số câu hỏi</TableHead>
+                <TableHead className="text-center py-3 font-semibold text-gray-700 w-[120px]">Người tạo</TableHead>
                 <TableHead className="text-center py-3 font-semibold text-gray-700 w-[120px]">Trạng thái</TableHead>
-                <TableHead className="text-right py-3 font-semibold text-gray-700 w-[100px] rounded-tr-lg">Thao tác</TableHead>
+                <TableHead className="text-right py-3 font-semibold text-gray-700 w-[100px] rounded-tr-lg">
+                  Thao tác
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredExercises.map((exercise, index) => (
                 <TableRow
                   key={exercise.exerciseId}
-                  className={`hover:bg-violet-300/30 border-b border-x  ${index % 2 === 0 ? 'bg-white' : 'bg-gray-100/80'}`}
+                  className={`hover:bg-violet-300/30 border-b border-x ${index % 2 === 0 ? 'bg-white' : 'bg-gray-100/80'}`}
                 >
                   <TableCell className="py-4 w-[300px]">
                     <div className="flex items-center">
@@ -440,6 +492,18 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center py-4 w-[120px]">
+                    <Badge
+                      variant="outline"
+                      className={`px-2 py-1 cursor-default text-center whitespace-normal break-words max-w-full ${
+                        exercise.creator
+                          ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                          : 'bg-red-50 text-red-700 hover:bg-red-100'
+                      }`}
+                    >
+                      {getCreatorName(exercise.creator)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-center py-4 w-[120px]">
                     {getStatusBadge(exercise.status, exercise.rejectedReason)}
                   </TableCell>
                   <TableCell className="text-right py-3 w-[100px]">
@@ -466,16 +530,19 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
                             Thông tin
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            to={`/exercises/${exercise.exerciseId}/edit`}
-                            className="text-indigo-600 focus:text-indigo-600 rounded-lg"
-                          >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Chỉnh sửa
-                          </Link>
-                        </DropdownMenuItem>
-                        {(exercise.status === 'PENDING' || exercise.status === 'DENIED') && (
+                        {(userRole.toUpperCase() === 'ADMIN' || exercise.status !== 'VERIFIED') && (
+                          <DropdownMenuItem asChild>
+                            <Link
+                              to={`/exercises/${exercise.exerciseId}/edit`}
+                              className="text-indigo-600 focus:text-indigo-600 rounded-lg"
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Chỉnh sửa
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
+                        {userRole.toUpperCase() === 'ADMIN' &&
+                          (exercise.status === 'PENDING' || exercise.status === 'DENIED') && (
                           <>
                             <DropdownMenuSeparator className="bg-gray-200" />
                             <AlertDialog>
@@ -485,14 +552,14 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
                                   onSelect={(e) => e.preventDefault()}
                                 >
                                   <CircleCheck className="mr-2 h-4 w-4" />
-                                  Phê duyệt
+                                    Phê duyệt
                                 </DropdownMenuItem>
                               </AlertDialogTrigger>
                               <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
                                 <AlertDialogHeader>
                                   <AlertDialogTitle className="text-xl">Xác nhận duyệt</AlertDialogTitle>
                                   <AlertDialogDescription className="text-gray-600">
-                                    Bạn có chắc chắn muốn phê duyệt bài học &quot;{exercise.exerciseName}&quot;?
+                                      Bạn có chắc chắn muốn phê duyệt bài luyện tập &quot;{exercise.exerciseName}&quot;?
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -501,7 +568,7 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
                                     onClick={() => handleApproveExercise(exercise.exerciseId)}
                                     className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg"
                                   >
-                                    Phê duyệt
+                                      Phê duyệt
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
@@ -513,14 +580,15 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
                                   onSelect={(e) => e.preventDefault()}
                                 >
                                   <XCircle className="mr-2 h-4 w-4" />
-                                  Từ chối
+                                    Từ chối
                                 </DropdownMenuItem>
                               </AlertDialogTrigger>
                               <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-xl">Từ chối bài luyện tập</AlertDialogTitle>
+                                  <AlertDialogTitle className="text-xl">Từ chối duyệt</AlertDialogTitle>
                                   <AlertDialogDescription className="text-gray-600">
-                                    Vui lòng nhập lý do từ chối luyện tập &quot;{exercise.exerciseName}&quot;.
+                                      Vui lòng nhập lý do từ chối duyệt bài luyện tập &quot;{exercise.exerciseName}
+                                      &quot;.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <div className="py-4">
@@ -533,10 +601,12 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
                                 </div>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel
-                                    onClick={() => {setRejectedReason('');}}
+                                    onClick={() => {
+                                      setRejectedReason('');
+                                    }}
                                     className="rounded-lg hover:bg-gray-100"
                                   >
-                                    Hủy
+                                      Hủy
                                   </AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() => {
@@ -545,43 +615,47 @@ export default function ExerciseList({ initialLectures, initialExercises, lectur
                                     }}
                                     className="bg-orange-600 hover:bg-orange-700 text-white"
                                   >
-                                    Xác nhận
+                                      Xác nhận
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
                           </>
                         )}
-                        <DropdownMenuSeparator className="bg-gray-200" />
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem
-                              className="text-red-600 focus:text-red-600 rounded-lg"
-                              onSelect={(e) => e.preventDefault()}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Xóa
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-xl">Xác nhận xóa</AlertDialogTitle>
-                              <AlertDialogDescription className="text-gray-600">
-                                Bạn có chắc chắn muốn xóa bài học &quot;{exercise.exerciseName}&quot;? Hành động này không thể hoàn tác và có
-                                thể ảnh hưởng đến các bài tập liên quan.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-lg hover:bg-gray-100">Hủy</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteExercise(exercise.exerciseId)}
-                                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg"
-                              >
-                                Xóa
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        {(userRole.toUpperCase() === 'ADMIN' || exercise.status !== 'VERIFIED') && (
+                          <>
+                            <DropdownMenuSeparator className="bg-gray-200" />
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem
+                                  className="text-red-600 focus:text-red-600 rounded-lg"
+                                  onSelect={(e) => e.preventDefault()}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Xóa
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-xl">Xác nhận xóa</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-gray-600">
+                                    Bạn có chắc chắn muốn xóa bài luyện tập &quot;{exercise.exerciseName}&quot;? Hành
+                                    động này không thể hoàn tác.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="rounded-lg hover:bg-gray-100">Hủy</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteExercise(exercise.exerciseId)}
+                                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg"
+                                  >
+                                    Xóa
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

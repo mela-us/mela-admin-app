@@ -22,15 +22,13 @@ export default function ExerciseDetail() {
 
   useEffect(() => {
     let isMounted = true;
-
     async function fetchData() {
       try {
-        const [exerciseResData, lecturesResData] = await Promise.all([
-          ExerciseService.getExerciseById(id),
-          LectureService.getLectures(),
-        ]);
-
         if (isMounted) {
+          const [exerciseResData, lecturesResData] = await Promise.all([
+            ExerciseService.getExerciseById(id),
+            LectureService.getLectures(),
+          ]);
           const exerciseData = {
             exerciseId: exerciseResData.data.exerciseId,
             exerciseName: exerciseResData.data.exerciseName,
@@ -54,15 +52,15 @@ export default function ExerciseDetail() {
               terms: q.terms || '',
             })),
           };
-
           setExercise(exerciseData);
           setLectures(lecturesResData.data || []);
         }
       } catch (error) {
+        const msg = error.response?.data?.message || error.message || 'Error fetching exercise data';
         if (isMounted) {
           toast.error({
-            title: 'Lỗi tải dữ liệu',
-            description: error.response?.data?.message || 'Không thể tải thông tin bài tập.',
+            title: 'Fetching Data Error',
+            description: msg,
           });
         }
       } finally {
@@ -71,9 +69,7 @@ export default function ExerciseDetail() {
         }
       }
     }
-
     fetchData();
-
     return () => {
       isMounted = false;
     };
@@ -81,7 +77,7 @@ export default function ExerciseDetail() {
 
   const getLectureName = (lectureId) => {
     const lecture = lectures.find((l) => l.lectureId === lectureId);
-    return lecture ? lecture.name : 'Chưa có';
+    return lecture ? lecture.name : 'Chưa có bài học';
   };
 
   const toggleQuestion = (questionId) => {
@@ -129,8 +125,8 @@ export default function ExerciseDetail() {
   if (!exercise) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-red-600 text-lg font-medium">Không tìm thấy bài tập.</div>
+        <div className="flex justify-center items-center h-10">
+          <div className="text-purple-600 text-lg">Không tìm thấy bài luyện tập</div>
         </div>
       </DashboardLayout>
     );
@@ -148,7 +144,7 @@ export default function ExerciseDetail() {
           >
             <ChevronLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
           </Button>
-          <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-700 to-pink-500 bg-clip-text text-transparent ml-2">
+          <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent ml-2">
             Chi tiết bài luyện tập
           </h2>
         </div>
@@ -196,7 +192,7 @@ export default function ExerciseDetail() {
                   variant="outline"
                   className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3 py-1 cursor-default text-sm font-medium"
                 >
-                  {exercise.questions.length} câu
+                  {exercise.questions?.length || 0} câu
                 </Badge>
               </div>
             </div>
@@ -209,7 +205,7 @@ export default function ExerciseDetail() {
             <CardDescription className="text-gray-700/80">Các câu hỏi trong bài luyện tập</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            {exercise.questions.length === 0 ? (
+            {!exercise.questions || exercise.questions.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-indigo-600/70 text-lg mb-2">Chưa có câu hỏi nào</div>
                 <div className="text-indigo-600/50 text-sm">Hãy thêm câu hỏi để hoàn thiện bài tập</div>

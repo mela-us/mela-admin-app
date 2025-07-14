@@ -8,7 +8,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(state.user?.role)) {
+  if (allowedRoles && !allowedRoles.includes(state.user?.userRole)) {
     return <Navigate to="/" replace />;
   }
 

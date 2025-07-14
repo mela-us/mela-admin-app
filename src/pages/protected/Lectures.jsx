@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
-import { BookOpen } from 'lucide-react';
 import LectureList from '../../components/common/lectures/LectureList';
 import Loader from '../../components/Loader';
+import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { LectureService } from '../../services/LectureService';
 import { LevelService } from '../../services/LevelService';
 import { TopicService } from '../../services/TopicService';
+import { UserService } from '../../services/UserService';
 
 export default function AdminLecturesPage() {
+  const { state } = useAuth();
   const [lectures, setLectures] = useState([]);
   const [levels, setLevels] = useState([]);
   const [topics, setTopics] = useState([]);
+  const [contributors, setContributors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -19,25 +22,31 @@ export default function AdminLecturesPage() {
     let isMounted = true;
     async function fetchData() {
       try {
-        const [lecturesResData, levelsResData, topicsResData] = await Promise.all([
-          LectureService.getLectures(),
-          LevelService.getLevels(),
-          TopicService.getTopics(),
-        ]);
-        if (isMounted) {
+        if (isMounted && state.user.userRole?.toLowerCase() === 'contributor') {
+          const [lecturesResData, levelsResData, topicsResData] = await Promise.all([
+            LectureService.getLectures(),
+            LevelService.getLevels(),
+            TopicService.getTopics(),
+          ]);
           setLectures(lecturesResData.data || []);
-          setLevels([{ levelId: 'null', name: 'Chưa có' }, ...(levelsResData.data || [])]);
-          setTopics([{ topicId: 'null', name: 'Chưa có' }, ...(topicsResData.data || [])]);
+          setLevels([...(levelsResData.data || [])]);
+          setTopics([...(topicsResData.data || [])]);
+        } else if (isMounted && state.user.userRole?.toLowerCase() === 'admin') {
+          const [lecturesResData, levelsResData, topicsResData, contributorsResData] = await Promise.all([
+            LectureService.getLectures(),
+            LevelService.getLevels(),
+            TopicService.getTopics(),
+            UserService.getUsers('CONTRIBUTOR'),
+          ]);
+          setLectures(lecturesResData.data || []);
+          setLevels([...(levelsResData.data || [])]);
+          setTopics([...(topicsResData.data || [])]);
+          setContributors([...(contributorsResData.data || [])]);
         }
       } catch (error) {
-        let msg = '';
-        if (error.response) {
-          msg = error.response.data?.message;
-        } else {
-          msg = error.message || 'Lỗi không xác định';
-        }
+        const msg = error.response?.data?.message || error.message || 'Error when fetching data';
         toast.error({
-          title: 'Lỗi tải dữ liệu',
+          title: 'Fetching Data Error',
           description: msg,
         });
       } finally {
@@ -62,7 +71,13 @@ export default function AdminLecturesPage() {
 
   return (
     <DashboardLayout>
-      <LectureList lectures={lectures} setLectures={setLectures} levels={levels} topics={topics} />
+      <LectureList
+        lectures={lectures}
+        setLectures={setLectures}
+        levels={levels}
+        topics={topics}
+        contributors={contributors}
+      />
     </DashboardLayout>
   );
 }

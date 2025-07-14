@@ -10,18 +10,10 @@ export const UserService = {
       });
   },
 
-  async getUsers() {
+  async getUsers(role = null) {
+    const params = role ? { role } : {};
     return apiClient
-      .get('/api/users')
-      .then((res) => res.data)
-      .catch((err) => {
-        return Promise.reject(err);
-      });
-  },
-
-  async getUserScores() {
-    return apiClient
-      .get('/api/users/scores')
+      .get('/api/users', { params })
       .then((res) => res.data)
       .catch((err) => {
         return Promise.reject(err);
@@ -30,23 +22,14 @@ export const UserService = {
 
   async getUserInfo(userId) {
     return apiClient
-      .get(`/api/users/${userId}/profile`)
+      .get(`/api/users/${userId}`)
       .then((res) => res.data)
       .catch((err) => {
         return Promise.reject(err);
       });
   },
 
-  async getUserStats(userId) {
-    return apiClient
-      .get(`/api/users/${userId}/report`)
-      .then((res) => res.data)
-      .catch((err) => {
-        return Promise.reject(err);
-      });
-  },
-
-  async deleteAccount(userId) {
+  async deleteUser(userId) {
     return apiClient
       .delete(`/api/users/${userId}`)
       .then((res) => res.data)
@@ -55,7 +38,7 @@ export const UserService = {
       });
   },
 
-  async updateAccount(userId, payload) {
+  async updateUser(userId, payload) {
     return apiClient
       .put(`/api/users/${userId}`, payload)
       .then((res) => res.data)
@@ -64,7 +47,7 @@ export const UserService = {
       });
   },
 
-  async createAccount(payload) {
+  async createUser(payload) {
     return apiClient
       .post('/api/users', payload)
       .then((res) => res.data)

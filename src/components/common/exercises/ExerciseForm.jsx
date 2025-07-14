@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../../contexts/ToastContext';
 import { ExerciseService } from '../../../services/ExerciseService';
 import { MediaService } from '../../../services/MediaService';
+import { Alert, AlertDescription } from '../../ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,8 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
   const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [uploadedImages, setUploadedImages] = useState([]);
+  const [exerciseError, setExerciseError] = useState(null);
+  const [questionsError, setQuestionsError] = useState(null);
 
   const extractImageUrlsFromText = (text) => {
     const regex = /<img[^>]+src=['"]([^'">]+)['"]/g;
@@ -139,6 +142,7 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
   };
 
   const handleSaveQuestion = (question) => {
+    setQuestionsError(null);
     let updatedQuestions;
     if (currentQuestion) {
       updatedQuestions = formData.questions.map((q) => (q.questionId === question.questionId ? question : q));
@@ -155,6 +159,7 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
   };
 
   const handleDeleteQuestion = (id) => {
+    setQuestionsError(null);
     const updatedQuestions = formData.questions
       .filter((q) => q.questionId !== id)
       .map((q, index) => ({ ...q, ordinalNumber: index + 1 }));
@@ -162,6 +167,7 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
   };
 
   const handleMoveQuestion = (id, direction) => {
+    setQuestionsError(null);
     const index = formData.questions.findIndex((q) => q.questionId === id);
     if (direction === 'up' && index === 0) return;
     if (direction === 'down' && index === formData.questions.length - 1) return;
@@ -186,99 +192,92 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
       setUploadedImages((prev) => [...prev, fileUrl]);
       return fileUrl;
     } catch (error) {
-      console.error('Error uploading image:', error);
+      const msg = error.response?.data?.message || error.message || 'Error uploading image';
       toast.error({
-        title: 'Lỗi upload ảnh',
-        description: 'Không thể tải lên hình ảnh. Vui lòng thử lại.',
+        title: 'Upload Error',
+        description: msg,
       });
       return null;
     }
   };
 
   const validateForm = () => {
-    if (!formData.exerciseName.trim()) {
-      toast.error({
-        title: 'Lỗi nhập liệu',
-        description: 'Vui lòng nhập tên bài luyện tập',
-      });
-      return false;
-    }
-
+    let isValid = true;
     if (!formData.lectureId) {
-      toast.error({
-        title: 'Lỗi nhập liệu',
-        description: 'Vui lòng chọn bài học',
-      });
-      return false;
+      setExerciseError('Vui lòng chọn bài học');
+      isValid = false;
+    }
+    if (!formData.exerciseName.trim()) {
+      setExerciseError('Vui lòng nhập tên bài luyện tập');
+      isValid = false;
+    }
+    if (isValid) {
+      setExerciseError(null);
     }
 
     if (formData.questions.length === 0) {
-      toast.error({
-        title: 'Lỗi nhập liệu',
-        description: 'Vui lòng thêm ít nhất một câu hỏi',
-      });
+      setQuestionsError('Bài luyện tập cần có ít nhất một câu hỏi');
       return false;
     }
-
     for (const question of formData.questions) {
       if (!question.content.trim()) {
-        toast.error({
-          title: 'Lỗi nhập liệu',
-          description: `Vui lòng nhập nội dung cho câu hỏi số ${question.ordinalNumber}`,
-        });
+        setQuestionsError(`Câu hỏi số ${question.ordinalNumber} cần có nội dung`);
         return false;
       }
       if (question.questionType === 'MULTIPLE_CHOICE' && question.options.length < 2) {
-        toast.error({
-          title: 'Lỗi nhập liệu',
-          description: `Câu hỏi số ${question.ordinalNumber} cần ít nhất 2 đáp án`,
-        });
+        setQuestionsError(`Câu hỏi số ${question.ordinalNumber} cần có ít nhất 2 lựa chọn`);
         return false;
       }
+      for (const option of question.options) {
+        if (!option.content.trim()) {
+          setQuestionsError(
+            `Lựa chọn số ${option.ordinalNumber} của câu hỏi số ${question.ordinalNumber} cần có nội dung`,
+          );
+          return false;
+        }
+      }
       if (question.questionType === 'FILL_IN_THE_BLANK' && !question.blankAnswer?.trim()) {
-        toast.error({
-          title: 'Lỗi nhập liệu',
-          description: `Vui lòng nhập đáp án cho câu hỏi số ${question.ordinalNumber}`,
-        });
+        setQuestionsError(`Câu hỏi số ${question.ordinalNumber} cần có đáp án điền khuyết`);
+        return false;
+      }
+      if (!question.solution?.trim()) {
+        setQuestionsError(`Câu hỏi số ${question.ordinalNumber} cần có hướng dẫn giải`);
         return false;
       }
     }
-
-    return true;
+    setQuestionsError(null);
+    return isValid;
   };
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-
+    setExerciseError(null);
+    setQuestionsError(null);
     setIsSubmitting(true);
     try {
       const exerciseData = { ...formData };
 
       if (mode === 'add') {
-        await ExerciseService.createExercise(exerciseData);
+        const resData = await ExerciseService.createExercise(exerciseData);
+        const { message } = resData.data;
         toast.success({
-          title: 'Thành công',
-          description: 'Đã thêm bài luyện tập',
+          title: 'Add Exercise Success',
+          description: message,
         });
       } else {
-        await ExerciseService.updateExercise(formData.exerciseId, exerciseData);
+        const resData = await ExerciseService.updateExercise(formData.exerciseId, exerciseData);
+        const { message } = resData.data;
         toast.success({
-          title: 'Thành công',
-          description: 'Đã cập nhật bài luyện tập',
+          title: 'Update Exercise Success',
+          description: message,
         });
       }
-
       navigate('/exercises');
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        msg = error.response.data?.message;
-      } else {
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error saving exercise';
       toast.error({
-        title: `Lỗi ${mode === 'add' ? 'thêm' : 'cập nhật'} bài luyện tập`,
-        description: msg || 'Lỗi không xác định',
+        title: 'Save Error',
+        description: msg,
       });
     } finally {
       setIsSubmitting(false);
@@ -309,7 +308,7 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
         >
           <ChevronLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
         </Button>
-        <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-700 to-pink-500 bg-clip-text text-transparent ml-2">
+        <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent ml-2">
           {mode === 'add' ? 'Thêm bài luyện tập' : 'Chỉnh sửa bài luyện tập'}
         </h2>
       </div>
@@ -378,6 +377,14 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
                 />
               </div>
             </div>
+            {exerciseError && (
+              <Alert
+                variant="destructive"
+                className="bg-red-50 border border-red-200 text-red-800 shadow-sm rounded-md mt-6"
+              >
+                <AlertDescription className="text-sm text-red-700">{exerciseError}</AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
 
@@ -392,9 +399,7 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
           </CardHeader>
           <CardContent className="pt-6">
             {formData.questions.length === 0 ? (
-              <p className="text-indigo-600/70 text-sm">
-                Chưa có câu hỏi nào. Nhấn &quot;Thêm câu hỏi&quot; để bắt đầu.
-              </p>
+              <p className="text-indigo-600/70 text-sm">Chưa có câu hỏi nào. Thêm câu hỏi để bắt đầu.</p>
             ) : (
               <div className="space-y-4">
                 {formData.questions.map((question) => (
@@ -549,6 +554,14 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
                 ))}
               </div>
             )}
+            {questionsError && (
+              <Alert
+                variant="destructive"
+                className="bg-red-50 border border-red-200 text-red-800 shadow-sm rounded-md mt-6"
+              >
+                <AlertDescription className="text-sm text-red-700">{questionsError}</AlertDescription>
+              </Alert>
+            )}
             <div
               className="group relative border-2 border-dashed border-gray-300 rounded-lg hover:border-pink-400 hover:bg-pink-50/30 transition-all cursor-pointer mt-4"
               onClick={handleAddQuestion}
@@ -609,10 +622,10 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
       <AlertDialog open={isExitDialogOpen} onOpenChange={setIsExitDialogOpen}>
         <AlertDialogContent className="rounded-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận hủy</AlertDialogTitle>
+            <AlertDialogTitle>Xác nhận thoát</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn hủy? {mode === 'add' ? 'Tất cả thông tin đã nhập' : 'Tất cả thay đổi'} sẽ bị mất và
-              không thể khôi phục.
+              Bạn có chắc chắn muốn thoát? {mode === 'add' ? 'Tất cả thông tin đã nhập' : 'Tất cả thay đổi'} sẽ bị mất
+              và không thể khôi phục.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

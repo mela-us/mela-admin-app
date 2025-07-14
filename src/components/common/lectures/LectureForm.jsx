@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import SectionList from './SectionList';
-import { ms } from 'date-fns/locale/ms';
 import { ChevronLeft, Loader2, Save, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../../contexts/ToastContext';
@@ -28,8 +27,6 @@ function LectureForm({ mode, initialData, levels, topics }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
-  const [_, setTotalUploads] = useState(0);
-  const [__, setCompletedUploads] = useState(0);
   const [formData, setFormData] = useState({
     lectureId: '',
     name: '',
@@ -113,12 +110,15 @@ function LectureForm({ mode, initialData, levels, topics }) {
       return false;
     }
 
-    if (formData.sections.length === 0) {
+    if (formData.sections?.length === 0) {
       return false;
     }
 
     for (const section of formData.sections) {
       if (section.sectionType === 'PDF' && !section.url) {
+        return false;
+      }
+      if (!section.name.trim()) {
         return false;
       }
     }
@@ -133,10 +133,6 @@ function LectureForm({ mode, initialData, levels, topics }) {
     setIsSubmitting(true);
 
     try {
-      const uploads = formData.sections.filter((s) => s.sectionType === 'PDF' && s.file && s.isNewFile).length;
-      setTotalUploads(uploads);
-      setCompletedUploads(0);
-
       const processedSections = [...formData.sections];
 
       for (let i = 0; i < processedSections.length; i++) {
@@ -151,10 +147,6 @@ function LectureForm({ mode, initialData, levels, topics }) {
             file: null,
             isNewFile: false,
           };
-          setCompletedUploads((prev) => {
-            const newCompleted = prev + 1;
-            return newCompleted;
-          });
         }
       }
 
@@ -175,15 +167,16 @@ function LectureForm({ mode, initialData, levels, topics }) {
         await LectureService.createLecture(lectureData);
       }
       toast.success({
-        title: 'Thành công',
-        description: `${mode === 'edit' ? 'Cập nhật' : 'Thêm'} bài học thành công!`,
+        title: `Success ${mode === 'edit' ? 'Update' : 'Add'} Lecture`,
+        description: `Lecture ${formData.name} has been successfully ${mode === 'edit' ? 'updated' : 'added'}.`,
       });
       navigate('/lectures');
     } catch (error) {
-      console.error('Error adding lecture:', error);
+      const msg =
+        error.response?.data?.message || error.message || `Error ${mode === 'edit' ? 'updating' : 'adding'} lecture`;
       toast.error({
-        title: 'Lỗi',
-        description: 'Không thể thêm bài học. Vui lòng thử lại.',
+        title: `Error ${mode === 'edit' ? 'Updating' : 'Adding'} Lecture`,
+        description: msg,
       });
     } finally {
       setIsSubmitting(false);
@@ -214,7 +207,7 @@ function LectureForm({ mode, initialData, levels, topics }) {
         >
           <ChevronLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
         </Button>
-        <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-700 to-pink-500 bg-clip-text text-transparent ml-2">
+        <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent ml-2">
           {mode === 'edit' ? 'Chỉnh sửa bài học' : 'Thêm bài học'}
         </h2>
       </div>
@@ -335,7 +328,7 @@ function LectureForm({ mode, initialData, levels, topics }) {
         </Button>
         <Button
           onClick={handleSubmit}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !validateForm()}
           className={`px-5 py-2 rounded-lg font-medium shadow-md transition-all duration-200
             ${isSubmitting ? 'bg-pink-400' : 'bg-pink-500 hover:bg-pink-700'}
             text-white focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-80`}
@@ -356,9 +349,9 @@ function LectureForm({ mode, initialData, levels, topics }) {
       <AlertDialog open={isExitDialogOpen} onOpenChange={setIsExitDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận hủy</AlertDialogTitle>
+            <AlertDialogTitle>Xác nhận thoát</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn hủy? Tất cả thông tin đã nhập sẽ bị mất và không thể khôi phục.
+              Bạn có chắc chắn muốn thoát? Tất cả thông tin đã nhập sẽ bị mất và không thể khôi phục.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

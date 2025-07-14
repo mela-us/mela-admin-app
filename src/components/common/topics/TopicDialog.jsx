@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { ms } from 'date-fns/locale/ms';
-import { Upload, X } from 'lucide-react';
+import { CircleCheck, Upload, X } from 'lucide-react';
+import { Alert, AlertDescription } from '../../ui/alert';
 import { Button } from '../../ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../ui/dialog';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
 
 function TopicDialog({ open, onOpenChange, onSave, title, confirmText, initialData }) {
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+  const fileInputRef = useRef(null);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     selectedImage: null,
@@ -15,10 +19,7 @@ function TopicDialog({ open, onOpenChange, onSave, title, confirmText, initialDa
   });
   const [isValidName, setIsValidName] = useState(false);
   const [isValidImage, setIsValidImage] = useState(false);
-  const [error, setError] = useState(null);
-  const fileInputRef = useRef(null);
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-  const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -29,8 +30,8 @@ function TopicDialog({ open, onOpenChange, onSave, title, confirmText, initialDa
       });
     } else {
       setFormData({ name: '', selectedImage: null, selectedFileName: '', previewUrl: '' });
-      setError(null);
     }
+    setError(null);
   }, [initialData, open]);
 
   useEffect(() => {
@@ -45,24 +46,21 @@ function TopicDialog({ open, onOpenChange, onSave, title, confirmText, initialDa
   }, [formData.name]);
 
   useEffect(() => {
-    const isImageValid = !!formData.previewUrl || !!formData.selectedImage;
+    const isImageValid = !!formData.previewUrl || !formData.selectedImage;
     setIsValidImage(isImageValid);
   }, [formData.previewUrl, formData.selectedImage]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (file.size > MAX_FILE_SIZE) {
       setError('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB.');
       return;
     }
-
     if (!VALID_IMAGE_TYPES.includes(file.type)) {
       setError('Vui lòng chọn file ảnh hợp lệ (JPEG, PNG, JPG, hoặc WebP).');
       return;
     }
-
     setError(null);
     const newPreviewUrl = URL.createObjectURL(file);
     setFormData((prev) => ({
@@ -73,16 +71,30 @@ function TopicDialog({ open, onOpenChange, onSave, title, confirmText, initialDa
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!isValidName) {
+      setError('Vui lòng nhập tên chủ đề.');
+      return;
+    }
+    if (!isValidImage) {
+      setError('Vui lòng chọn ảnh hợp lệ.');
+      return;
+    }
+    setError(null);
+    setIsLoading(true);
     const topicData = {
       topicName: formData.name,
-      ...(formData.selectedImage && { fileBlob: formData.selectedImage, filename: formData.selectedFileName }),
+      ...(formData.selectedImage && { fileBlob: formData.selectedImage, imageName: formData.selectedFileName }),
       ...(initialData && { topicId: initialData.topicId }),
     };
-    onSave(topicData);
-    onOpenChange(false);
-    setFormData({ name: '', selectedImage: null, selectedFileName: '', previewUrl: '' });
-    setError(null);
+    const isSuccess = await onSave(topicData);
+    if (isSuccess) {
+      setFormData({ name: '', selectedImage: null, selectedFileName: '', previewUrl: '' });
+      onOpenChange(false);
+    } else {
+      setError('Đã xảy ra lỗi khi lưu chủ đề. Vui lòng điều chỉnh lại thông tin và thử lại.');
+    }
+    setIsLoading(false);
   };
 
   const handleNameChange = (e) => {
@@ -109,23 +121,31 @@ function TopicDialog({ open, onOpenChange, onSave, title, confirmText, initialDa
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-center">{title}</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-6 py-4">
+        <div className="grid py-4">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium">
-              Tên cấp độ
+              Tên chủ đề
             </Label>
             <Input
               id="name"
               value={formData.name}
               onChange={handleNameChange}
-              placeholder="Nhập tên cấp độ"
-              className="h-10 focus:ring-2 focus:ring-offset-1 focus:ring-blue-500"
+              placeholder="Nhập tên chủ đề"
+              className="h-10"
             />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 mt-6">
             <Label htmlFor="image" className="text-sm font-medium">
-              Ảnh cấp độ
+              Ảnh chủ đề
             </Label>
+            {formData.selectedFileName && !error && (
+              <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md">
+                <p className="text-sm text-gray-600 flex items-center">
+                  <CircleCheck className="w-4 h-4 mr-2" />
+                  Đã chọn: {formData.selectedFileName}
+                </p>
+              </div>
+            )}
             <div className="flex flex-col items-center">
               {formData.previewUrl ? (
                 <div className="relative w-full h-64 mb-3 bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
@@ -159,60 +179,26 @@ function TopicDialog({ open, onOpenChange, onSave, title, confirmText, initialDa
                 className="hidden"
               />
             </div>
-            {error && (
-              <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600 flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                  {error}
-                </p>
-              </div>
-            )}
-            {formData.selectedFileName && !error && (
-              <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-sm text-blue-600 flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Đã chọn: {formData.selectedFileName}
-                </p>
-              </div>
-            )}
           </div>
+          {error && (
+            <Alert
+              variant="destructive"
+              className="bg-red-50 border border-red-200 text-red-800 shadow-sm rounded-md mt-6"
+            >
+              <AlertDescription className="text-sm text-red-700">{error}</AlertDescription>
+            </Alert>
+          )}
         </div>
-        <DialogFooter className="flex gap-3 mt-2">
+        <DialogFooter className="flex gap-3">
           <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-10">
             Hủy
           </Button>
           <Button
             onClick={handleSave}
-            disabled={(initialData && !isValidName) || (!initialData && (!isValidImage || !isValidName))}
-            className="flex-1 h-10"
+            disabled={(initialData && !isValidName) || (!initialData && (!isValidImage || !isValidName)) || isLoading}
+            className="flex-1 h-10 button-bg-color"
           >
-            {confirmText}
+            {isLoading ? 'Đang lưu...' : confirmText}
           </Button>
         </DialogFooter>
       </DialogContent>

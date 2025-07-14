@@ -110,3 +110,11 @@
   background-size: cover;
   background-position: center;
 }
+
+.placeholder-image {
+  background-image: url('../../public/assets/placeholder.svg');
+}
+
+.button-bg-color {
+  @apply opacity-90 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600;
+}

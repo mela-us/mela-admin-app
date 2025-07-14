@@ -70,7 +70,7 @@ export default function MainHeader({ navigationItems = [] }) {
               {index < breadcrumbs.length - 1 ? (
                 <>
                   <BreadcrumbLink asChild>
-                    <Link to={crumb.href} className="flex items-center gap-1.5">
+                    <Link to={crumb.href} className="flex items-center gap-1.5 text-gray-600">
                       <crumb.icon className="w-4 h-4 text-gray-600" />
                       <span>{crumb.label}</span>
                     </Link>
@@ -78,7 +78,7 @@ export default function MainHeader({ navigationItems = [] }) {
                   <BreadcrumbSeparator />
                 </>
               ) : (
-                <BreadcrumbPage className="flex items-center gap-1.5">
+                <BreadcrumbPage className="flex items-center gap-1.5 text-gray-600">
                   <crumb.icon className="w-4 h-4 text-gray-600" />
                   <span>{crumb.label}</span>
                 </BreadcrumbPage>
@@ -93,14 +93,21 @@ export default function MainHeader({ navigationItems = [] }) {
         <DropdownMenu open={showProfileMenu} onOpenChange={setShowProfileMenu}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center space-x-1 p-2 hover:bg-gray-100 rounded-lg">
-              <Avatar className="w-8 h-8">
-                <AvatarFallback className="text-white font-semibold text-sm bg-pink-400">
-                  {state.user?.username?.charAt(0) || 'U'}
+              <Avatar className="w-8 h-8 ring-2 ring-purple-100 ring-offset-1">
+                <AvatarFallback className="text-white font-semibold text-sm bg-gradient-to-br from-purple-400 to-pink-400">
+                  {state.user.username?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="block text-left">
-                <div className="text-sm font-medium text-gray-900">{state.user?.username}</div>
-                <div className="text-xs capitalize text-gray-500">{state.user?.role}</div>
+                <div className="text-sm font-medium text-gray-800/90">
+                  {state.user?.username || 'email@example.com'}
+                </div>
+                <div>
+                  <span className="text-xs capitalize text-gray-500">{state.user.userRole}</span>
+                  {state.user.userRole?.toLowerCase() === 'contributor' && state.user.levelTitle && (
+                    <span className="text-xs text-gray-500"> {state.user.levelTitle?.toLowerCase()}</span>
+                  )}
+                </div>
               </div>
               <ChevronDown className="w-4 h-4 text-gray-400" />
             </Button>
@@ -118,7 +125,7 @@ export default function MainHeader({ navigationItems = [] }) {
       </div>
 
       {/* Decorative Elements */}
-      <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-50" />
+      <div className="absolute inset-x-0 bottom-0 h-1 bg-purple-500 opacity-50" />
       <div className="absolute bottom-5 left-80 w-5 h-5 bg-purple-400/20 rounded-full animate-pulse delay-500" />
       <div className="absolute bottom-3 right-80 w-4 h-4 bg-pink-400/30 rounded-full animate-ping delay-1000" />
     </header>

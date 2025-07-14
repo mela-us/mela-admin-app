@@ -62,142 +62,113 @@ function LevelList({ levels, setLevels }) {
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc');
 
-  const handleAddLevel = async ({ levelName, filename, fileBlob }) => {
+  const handleAddLevel = async ({ levelName, imageName, fileBlob }) => {
     try {
-      let filenamePath = null;
-      filename = filename || fileBlob?.name;
-      if (filename) {
-        const presinedResData = await MediaService.getUploadUrl(filename, 'LEVEL');
-        const { preSignedUrl, fileUrl } = presinedResData;
-        if (fileBlob) {
-          await MediaService.uploadFile(preSignedUrl, fileBlob);
-        }
-        filenamePath = fileUrl;
-      }
+      imageName = (imageName || fileBlob?.name) + levelName.replace(/\s+/g, '-').toLowerCase();
+      const preSignedResData = await MediaService.getUploadUrl(imageName, 'LEVEL');
+      const { preSignedUrl, fileUrl } = preSignedResData;
+      await MediaService.uploadFile(preSignedUrl, fileBlob);
 
-      const resData = await LevelService.createLevel(levelName, filenamePath);
-      const { message, data } = resData;
+      const createLevelResData = await LevelService.createLevel(levelName, fileUrl);
+      const { message, data } = createLevelResData;
       setLevels([...levels, data]);
       toast.success({
-        title: 'Thêm cấp độ thành công',
-        description: message || 'Cấp độ mới đã được thêm thành công',
+        title: 'Create Level Success',
+        description: message,
       });
       setIsAddDialogOpen(false);
+      return true;
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error adding level:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error adding level';
       toast.error({
-        title: 'Lỗi thêm cấp độ',
-        description: msg || 'Không thể thêm cấp độ mới',
+        title: 'Create Level Error',
+        description: msg,
       });
     }
+    return false;
   };
 
-  const handleEditLevel = async ({ levelId, levelName, filename, fileBlob }) => {
+  const handleEditLevel = async ({ levelId, levelName, imageName, fileBlob }) => {
     try {
-      let filenamePath = null;
-      filename = filename || fileBlob?.name;
-      if (filename) {
-        const presinedResData = await MediaService.getUploadUrl(filename, 'LEVEL');
-        const { preSignedUrl, fileUrl } = presinedResData;
-        if (fileBlob) {
-          await MediaService.uploadFile(preSignedUrl, fileBlob);
-        }
-        filenamePath = fileUrl;
+      let imageUrl = null;
+      if (fileBlob) {
+        imageName = (imageName || fileBlob.name) + levelName.replace(/\s+/g, '-').toLowerCase();
+        const preSinedResData = await MediaService.getUploadUrl(imageName, 'LEVEL');
+        const { preSignedUrl, fileUrl } = preSinedResData;
+        await MediaService.uploadFile(preSignedUrl, fileBlob);
+        imageUrl = fileUrl;
       }
 
-      const resData = await LevelService.updateLevel(levelId, levelName, filenamePath);
-      const { message } = resData;
-      if (filenamePath) {
-        setLevels(
-          levels.map((level) =>
-            level.levelId === levelId ? { ...level, name: levelName, imageUrl: filenamePath } : level,
-          ),
-        );
-      } else {
-        setLevels(levels.map((level) => (level.levelId === levelId ? { ...level, name: levelName } : level)));
-      }
-
+      const updateLevelResData = await LevelService.updateLevel(levelId, levelName, imageUrl);
+      const { message } = updateLevelResData;
+      setLevels(
+        levels.map((level) => {
+          if (level.levelId === levelId) {
+            const updateLevel = { ...level };
+            updateLevel.name = levelName || updateLevel.name;
+            updateLevel.imageUrl = imageUrl || updateLevel.imageUrl;
+            updateLevel.rejectedReason = null;
+            if (updateLevel.status !== 'VERIFIED') {
+              updateLevel.status = 'PENDING';
+            }
+            return updateLevel;
+          }
+          return level;
+        }),
+      );
       toast.success({
-        title: 'Cập nhật cấp độ thành công',
-        description: message || 'Cấp độ đã được cập nhật thành công',
+        title: 'Update Level Success',
+        description: message,
       });
       setIsEditDialogOpen(false);
       setCurrentLevel(null);
+      return true;
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error updating level:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error updating level';
       toast.error({
-        title: 'Lỗi cập nhật cấp độ',
-        description: msg || 'Không thể cập nhật cấp độ',
+        title: 'Update Level Error',
+        description: msg,
       });
     }
+    return false;
   };
 
-  const handleDeleteLevel = async (id) => {
+  const handleDeleteLevel = async (levelId) => {
     try {
-      const resData = await LevelService.deleteLevel(id);
+      const resData = await LevelService.deleteLevel(levelId);
       const { message } = resData;
-      setLevels(levels.filter((level) => level.levelId !== id));
+      setLevels(levels.filter((level) => level.levelId !== levelId));
       toast.success({
-        title: 'Xóa cấp độ thành công',
-        description: message || 'Cấp độ đã được xóa thành công',
+        title: 'Delete Level Success',
+        description: message,
       });
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error deleting level:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error deleting level';
       toast.error({
-        title: 'Lỗi xóa cấp độ',
-        description: msg || 'Không thể xóa cấp độ',
+        title: 'Delete Level Error',
+        description: msg,
       });
     }
   };
 
-  const handleApproveLevel = async (id) => {
+  const handleApproveLevel = async (levelId) => {
     try {
-      const resData = await LevelService.approveLevel(id);
+      const resData = await LevelService.approveLevel(levelId);
       const { message } = resData;
       setLevels(
-        levels.map((level) => (level.levelId === id ? { ...level, status: 'VERIFIED', rejectedReason: null } : level)),
+        levels.map((level) =>
+          level.levelId === levelId ? { ...level, status: 'VERIFIED', rejectedReason: null } : level,
+        ),
       );
       toast.success({
-        title: 'Phê duyệt cấp độ thành công',
-        description: message || 'Cấp độ đã được phê duyệt',
+        title: 'Approve Level Success',
+        description: message,
       });
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error approving level:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error approving level';
       toast.error({
-        title: 'Lỗi phê duyệt cấp độ',
-        description: msg || 'Không thể phê duyệt cấp độ',
+        title: 'Approve Level Error',
+        description: msg,
       });
     }
   };
@@ -210,28 +181,28 @@ function LevelList({ levels, setLevels }) {
       const resData = await LevelService.denyLevel(levelId, rejectedReason);
       const { message } = resData;
       setLevels(
-        levels.map((level) => (level.levelId === levelId ? { ...level, status: 'DENIED', rejectedReason } : level)),
+        levels.map((level) =>
+          level.levelId === levelId
+            ? {
+              ...level,
+              status: 'DENIED',
+              rejectedReason: rejectedReason || 'Liên hệ quản trị viên để biết thêm chi tiết',
+            }
+            : level,
+        ),
       );
       toast.success({
-        title: 'Từ chối cấp độ thành công',
-        description: message || 'Cấp độ đã bị từ chối.',
+        title: 'Deny Level Success',
+        description: message,
       });
       setIsDenyDialogOpen(false);
       setDenyLevel(null);
       setRejectedReason('');
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error denying level:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error denying level';
       toast.error({
-        title: 'Lỗi từ chối cấp độ',
-        description: msg || 'Không thể từ chối cấp độ',
+        title: 'Deny Level Error',
+        description: msg,
       });
     }
   };
@@ -259,13 +230,13 @@ function LevelList({ levels, setLevels }) {
 
   const filteredAndSortedLevels = levels
     .filter((level) => {
-      const matchesSearch = level.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = level.name?.toLowerCase().includes(searchTerm?.toLowerCase());
       const matchesStatus = statusFilter === 'All' || level.status === statusFilter;
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
-      const aValue = a.name.toLowerCase();
-      const bValue = b.name.toLowerCase();
+      const aValue = a.name?.toLowerCase();
+      const bValue = b.name?.toLowerCase();
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
@@ -290,7 +261,7 @@ function LevelList({ levels, setLevels }) {
   };
 
   const getStatusCount = (status) => {
-    return levels.filter((level) => status === 'All' || level.status === status).length;
+    return levels.filter((level) => status === 'All' || level.status === status)?.length || 0;
   };
 
   return (
@@ -302,13 +273,13 @@ function LevelList({ levels, setLevels }) {
             <Layers className="h-7 w-7 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Quản lý cấp độ</h2>
-            <p className="text-gray-600 text-sm">Tổng cộng {levels.length} cấp độ</p>
+            <h2 className="text-xl font-bold text-gray-700">Quản lý cấp độ</h2>
+            <p className="text-gray-600 text-sm">Tổng cộng {levels?.length || 0} cấp độ</p>
           </div>
         </div>
         <Button
           onClick={() => setIsAddDialogOpen(true)}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium px-5 py-2 rounded-3xl shadow transition-all duration-200"
+          className="button-bg-color text-white font-medium px-5 py-2 rounded-3xl shadow transition-all duration-200"
         >
           <Plus className="mr-2 h-5 w-5" /> <span>Thêm mới</span>
         </Button>
@@ -335,7 +306,7 @@ function LevelList({ levels, setLevels }) {
               { key: 'All', label: 'Tất cả', color: 'bg-gray-100 text-gray-700 hover:bg-gray-200' },
               { key: 'PENDING', label: 'Chờ duyệt', color: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
               { key: 'VERIFIED', label: 'Đã duyệt', color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-              { key: 'DENIED', label: 'Bị từ chối', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
+              { key: 'DENIED', label: 'Từ chối', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
             ].map(({ key, label, color }) => (
               <button
                 key={key}
@@ -397,7 +368,7 @@ function LevelList({ levels, setLevels }) {
                   Trạng thái &quot;{statusFilter}&quot;
                 </Badge>
               )}
-              <span className="text-sm text-gray-500">({filteredAndSortedLevels.length} kết quả)</span>
+              <span className="text-sm text-gray-500">({filteredAndSortedLevels?.length || 0} kết quả)</span>
             </div>
             <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" onClick={clearFilters}>
               Xóa bộ lọc
@@ -407,7 +378,7 @@ function LevelList({ levels, setLevels }) {
       </div>
 
       {/* Results */}
-      {filteredAndSortedLevels.length === 0 ? (
+      {filteredAndSortedLevels?.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-16 px-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
           <Search className="h-16 w-16 text-gray-300 mb-4" />
           <h3 className="text-lg font-medium text-gray-600 mb-1">Không tìm thấy kết quả</h3>
@@ -464,16 +435,19 @@ function LevelList({ levels, setLevels }) {
 
                   {/* Enhanced Action Menu */}
                   {(level.status === 'PENDING' || level.status === 'DENIED') && (
-                    <div className="absolute top-2.5 right-3 opacity-50 group-hover:opacity-100">
+                    <div className="absolute top-2.5 right-3 opacity-80 group-hover:opacity-100">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 bg-gray-800 backdrop-blur-sm hover:bg-gray-900 text-gray-200 hover:text-white rounded-full shadow-lg"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
+                          <div className="relative">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 bg-amber-500 text-gray-200 shadow-lg border-2 border-amber-400 backdrop-blur-sm hover:bg-amber-600 hover:text-white"
+                            >
+                              <Clock className="h-5 w-5" />
+                            </Button>
+                            <div className="absolute top-0 right-0 h-3 w-3 bg-red-500/50 rounded-full animate-ping"></div>
+                          </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
@@ -492,7 +466,7 @@ function LevelList({ levels, setLevels }) {
                               </AlertDialogTrigger>
                               <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-xl">Xác nhận duyệt</AlertDialogTitle>
+                                  <AlertDialogTitle className="text-xl">Xác nhận</AlertDialogTitle>
                                   <AlertDialogDescription className="text-gray-600">
                                     Bạn có chắc chắn muốn phê duyệt cấp độ &quot;{level.name}&quot;?
                                   </AlertDialogDescription>
@@ -525,7 +499,7 @@ function LevelList({ levels, setLevels }) {
                 {/* Enhanced Content Section */}
                 <CardContent className="p-4 relative z-10">
                   <div className="space-y-3">
-                    {/* Title with Tooltip */}
+                    {/* Title */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-base font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-purple-600 transition-colors duration-200">
@@ -549,10 +523,7 @@ function LevelList({ levels, setLevels }) {
                               <Info className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent
-                            className="sm:max-w-lg border-0 shadow-2xl rounded-2xl overflow-hidden"
-                            closeDisabled={true}
-                          >
+                          <DialogContent className="max-w-lg overflow-hidden" closeDisabled={true}>
                             <DialogHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 -m-6 mb-4">
                               <div className="flex items-center justify-between">
                                 <DialogTitle className="text-lg font-semibold">Lý do bị từ chối</DialogTitle>
@@ -563,7 +534,7 @@ function LevelList({ levels, setLevels }) {
                             </DialogHeader>
                             <div className="px-1 pb-2">
                               <div className="text-sm text-red-800 whitespace-pre-wrap leading-relaxed p-1 rounded-lg">
-                                {level.rejectedReason || 'Không có lý do cụ thể được cung cấp.'}
+                                {level.rejectedReason || 'Liên hệ quản trị viên để biết thêm chi tiết'}
                               </div>
                             </div>
                           </DialogContent>
@@ -577,7 +548,7 @@ function LevelList({ levels, setLevels }) {
                         variant="outline"
                         size="sm"
                         onClick={() => openEditDialog(level)}
-                        className="flex-1 h-8 text-xs bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 rounded-lg transition-all duration-200"
+                        className="flex-1 h-8 text-xs bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 hover:text-blue-800 rounded-lg transition-all duration-200"
                       >
                         <SquarePen className="mr-1 h-3 w-3" />
                         Sửa
@@ -587,7 +558,7 @@ function LevelList({ levels, setLevels }) {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex-1 h-8 text-xs bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:border-red-300 rounded-lg transition-all duration-200"
+                            className="flex-1 h-8 text-xs bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:border-red-300 hover:text-red-800 rounded-lg transition-all duration-200"
                           >
                             <Trash2 className="mr-1 h-3 w-3" />
                             Xóa
@@ -595,7 +566,7 @@ function LevelList({ levels, setLevels }) {
                         </AlertDialogTrigger>
                         <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="text-xl">Xác nhận xóa</AlertDialogTitle>
+                            <AlertDialogTitle className="text-xl">Xác nhận</AlertDialogTitle>
                             <AlertDialogDescription className="text-gray-600">
                               Bạn có chắc chắn muốn xóa cấp độ &quot;{level.name}&quot;? Hành động này không thể hoàn
                               tác.
@@ -642,9 +613,9 @@ function LevelList({ levels, setLevels }) {
       <AlertDialog open={denyLevel?.status === 'PENDING' || denyLevel?.status === 'DENIED'}>
         <AlertDialogContent className="rounded-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Từ chối cấp độ</AlertDialogTitle>
+            <AlertDialogTitle>Từ chối</AlertDialogTitle>
             <AlertDialogDescription>
-              Vui lòng nhập lý do từ chối cấp độ &quot;{denyLevel?.name}&quot;.
+              Vui lòng nhập lý do từ chối duyệt cấp độ &quot;{denyLevel?.name}&quot;.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
@@ -652,7 +623,7 @@ function LevelList({ levels, setLevels }) {
               value={rejectedReason}
               onChange={(e) => setRejectedReason(e.target.value)}
               placeholder="Nhập lý do từ chối"
-              className="h-12 text-gray-700"
+              className="h-3 text-gray-700"
             />
           </div>
           <AlertDialogFooter>

@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react';
-import { FileText } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import ExerciseList from '../../components/common/exercises/ExerciseList';
 import Loader from '../../components/Loader';
+import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { ExerciseService } from '../../services/ExerciseService';
 import { LectureService } from '../../services/LectureService';
+import { UserService } from '../../services/UserService';
 
 export default function ExercisesPage() {
   const [lectures, setLectures] = useState([]);
   const [exercises, setExercises] = useState([]);
+  const [contributors, setContributors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { state } = useAuth();
   const [searchParams] = useSearchParams();
   const lectureParam = searchParams.get('lecture');
 
@@ -20,23 +23,30 @@ export default function ExercisesPage() {
     let isMounted = true;
     async function fetchData() {
       try {
-        const [lecturesResData, exercisesResData] = await Promise.all([
-          LectureService.getLectures(),
-          ExerciseService.getExercises(),
-        ]);
-        console.log('Exercise:', exercisesResData.data);
-        if (isMounted) {
+        if (isMounted && state.user.userRole?.toUpperCase() === 'CONTRIBUTOR') {
+          const [lecturesResData, exercisesResData] = await Promise.all([
+            LectureService.getLectures(),
+            ExerciseService.getExercises(),
+          ]);
           setLectures(lecturesResData.data || []);
           setExercises(exercisesResData.data || []);
+        } else if (isMounted && state.user.userRole?.toUpperCase() === 'ADMIN') {
+          const [lecturesResData, exercisesResData, contributorsResData] = await Promise.all([
+            LectureService.getLectures(),
+            ExerciseService.getExercises(),
+            UserService.getUsers('CONTRIBUTOR'),
+          ]);
+          setLectures(lecturesResData.data || []);
+          setExercises(exercisesResData.data || []);
+          setContributors(contributorsResData.data || []);
         }
+        setLectures((prevLectures) => prevLectures.sort((a, b) => a.name?.localeCompare(b.name)));
       } catch (error) {
-        console.error('Error fetching data:', error);
-        if (isMounted) {
-          toast.error({
-            title: 'Lỗi!',
-            description: 'Không thể tải dữ liệu bài luyện tập. Vui lòng thử lại.',
-          });
-        }
+        const msg = error.response?.data?.message || error.message || 'Error when fetching data';
+        toast.error({
+          title: 'Fetching Data Error',
+          description: msg,
+        });
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -47,7 +57,7 @@ export default function ExercisesPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [state.user.userRole, toast]);
 
   if (isLoading) {
     return (
@@ -59,7 +69,13 @@ export default function ExercisesPage() {
 
   return (
     <DashboardLayout>
-      <ExerciseList initialLectures={lectures} initialExercises={exercises} lectureParam={lectureParam} />
+      <ExerciseList
+        exercises={exercises}
+        setExercises={setExercises}
+        lectures={lectures}
+        contributors={contributors}
+        lectureParam={lectureParam}
+      />
     </DashboardLayout>
   );
 }

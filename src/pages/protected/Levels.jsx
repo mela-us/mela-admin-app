@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { BarChart3 } from 'lucide-react';
 import LevelList from '../../components/common/levels/LevelList';
 import Loader from '../../components/Loader';
 import { useToast } from '../../contexts/ToastContext';
@@ -15,21 +14,16 @@ export default function AdminLevelsPage() {
     let isMounted = true;
     async function fetchLevels() {
       try {
-        const resData = await LevelService.getLevels();
         if (isMounted) {
+          const resData = await LevelService.getLevels();
           setLevels(resData.data || []);
         }
       } catch (error) {
         if (isMounted) {
-          let msg = '';
-          if (error.response && error.response.data) {
-            msg = error.response.data.message;
-          } else {
-            msg = error.message;
-          }
+          const msg = error.response?.data?.message || error.message || 'Error fetching levels';
           toast.error({
-            title: 'Lỗi lấy cấp độ',
-            description: msg || 'Có lỗi xảy ra khi lấy danh sách cấp độ.',
+            title: 'Fetching Levels Error',
+            description: msg,
           });
         }
       } finally {
@@ -40,7 +34,7 @@ export default function AdminLevelsPage() {
     }
     fetchLevels();
     return () => {
-      isMounted = false; // cleanup
+      isMounted = false;
     };
   }, []);
 

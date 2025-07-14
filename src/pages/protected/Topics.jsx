@@ -14,21 +14,16 @@ export default function AdminTopicsPage() {
     let isMounted = true;
     async function fetchTopics() {
       try {
-        const resData = await TopicService.getTopics();
         if (isMounted) {
+          const resData = await TopicService.getTopics();
           setTopics(resData.data || []);
         }
       } catch (error) {
         if (isMounted) {
-          let msg = '';
-          if (error.response && error.response.data) {
-            msg = error.response.data.message;
-          } else {
-            msg = error.message;
-          }
+          const msg = error.response?.data?.message || error.message || 'Error fetching topics';
           toast.error({
-            title: 'Lỗi lấy chủ đề',
-            description: msg || 'Có lỗi xảy ra khi lấy danh sách chủ đề.',
+            title: 'Fetching Topics Error',
+            description: msg,
           });
         }
       } finally {
@@ -39,7 +34,7 @@ export default function AdminTopicsPage() {
     }
     fetchTopics();
     return () => {
-      isMounted = false; // cleanup
+      isMounted = false;
     };
   }, []);
 

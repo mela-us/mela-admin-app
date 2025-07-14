@@ -13,18 +13,16 @@ export default function ExerciseEdit() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
-  const lectureParam = searchParams.get('lecture');
 
   useEffect(() => {
     let isMounted = true;
     async function fetchData() {
       try {
-        const [lecturesResData, exerciseResData] = await Promise.all([
-          LectureService.getLectures(),
-          ExerciseService.getExerciseById(id),
-        ]);
         if (isMounted) {
+          const [lecturesResData, exerciseResData] = await Promise.all([
+            LectureService.getLectures(),
+            ExerciseService.getExerciseById(id),
+          ]);
           setLectures(lecturesResData.data || []);
           const exerciseData = {
             exerciseId: exerciseResData.data.exerciseId,
@@ -52,17 +50,11 @@ export default function ExerciseEdit() {
           setExercise(exerciseData);
         }
       } catch (error) {
-        let msg = '';
-        if (error.response) {
-          msg = error.response.data?.message;
-        } else {
-          msg = error.message;
-        }
-        console.error('Error fetching data:', msg);
+        const msg = error.response?.data?.message || error.message || 'Error loading exercise data';
         if (isMounted) {
           toast.error({
-            title: 'Lỗi!',
-            description: msg || 'Không thể tải dữ liệu bài tập. Vui lòng thử lại.',
+            title: 'Fetching Data Error',
+            description: msg,
           });
         }
       } finally {
@@ -71,9 +63,7 @@ export default function ExerciseEdit() {
         }
       }
     }
-
     fetchData();
-
     return () => {
       isMounted = false;
     };
@@ -88,12 +78,18 @@ export default function ExerciseEdit() {
   }
 
   if (!exercise) {
-    return <DashboardLayout></DashboardLayout>;
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center h-10">
+          <div className="text-purple-600 text-lg">Không tìm thấy bài luyện tập</div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
     <DashboardLayout>
-      <ExerciseForm mode="edit" lectures={lectures} lectureParam={lectureParam} initialData={exercise} />
+      <ExerciseForm mode="edit" lectures={lectures} initialData={exercise} />
     </DashboardLayout>
   );
 }

@@ -6,7 +6,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000,
+  timeout: 10000,
   validateStatus: (status) => {
     return status >= 200 && status < 300;
   },
@@ -14,7 +14,7 @@ const api = axios.create({
 
 const refreshApi = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000,
+  timeout: 10000,
 });
 
 let isRefreshing = false;
@@ -34,7 +34,7 @@ const addToFailedQueue = (resolve, reject) => {
       failedQueue.splice(index, 1);
       reject(new Error('Token refresh timeout'));
     }
-  }, 10000);
+  }, 5000);
 
   failedQueue.push({
     resolve: (token) => {

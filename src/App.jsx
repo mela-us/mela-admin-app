@@ -9,6 +9,7 @@ import { useAuth } from './contexts/AuthContext';
 const LoginPage = React.lazy(() => import('./pages/public/Login'));
 // Common pages
 const CommonDashboard = React.lazy(() => import('./pages/protected/Dashboard'));
+const CommonReport = React.lazy(() => import('./pages/protected/Report'));
 const CommonLevelsPage = React.lazy(() => import('./pages/protected/Levels'));
 const CommonTopicsPage = React.lazy(() => import('./pages/protected/Topics'));
 const CommonLecturesPage = React.lazy(() => import('./pages/protected/Lectures'));
@@ -20,6 +21,9 @@ const CommonExerciseCreatePage = React.lazy(() => import('./pages/protected/Exer
 const CommonExerciseEditPage = React.lazy(() => import('./pages/protected/ExerciseEdit'));
 const CommonExerciseDetailPage = React.lazy(() => import('./pages/protected/ExerciseDetail'));
 const CommonUsersPage = React.lazy(() => import('./pages/protected/Users'));
+const CommonUserCreatePage = React.lazy(() => import('./pages/protected/UserCreate'));
+const CommonUserEditPage = React.lazy(() => import('./pages/protected/UserEdit'));
+const CommonUserDetailPage = React.lazy(() => import('./pages/protected/UserDetail'));
 
 export default function App() {
   const { state } = useAuth();
@@ -37,7 +41,6 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/login" element={<LoginPage />} />
 
-
           {/* Common routes */}
           <>
             <Route
@@ -49,9 +52,17 @@ export default function App() {
               }
             />
             <Route
+              path="/report"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <CommonReport />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/levels"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'contributor']}>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <CommonLevelsPage />
                 </ProtectedRoute>
               }
@@ -59,7 +70,7 @@ export default function App() {
             <Route
               path="/topics"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'contributor']}>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <CommonTopicsPage />
                 </ProtectedRoute>
               }
@@ -133,6 +144,30 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={['admin', 'contributor']}>
                   <CommonUsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users/:id"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'contributor']}>
+                  <CommonUserDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users/:id/edit"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <CommonUserEditPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users/add"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <CommonUserCreatePage />
                 </ProtectedRoute>
               }
             />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Eye, FileText, Trash2, Upload } from 'lucide-react';
+import { Alert, AlertDescription } from '../../ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,20 +12,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '../../../components/ui/alert-dialog';
-import { Badge } from '../../../components/ui/badge';
-import { Button } from '../../../components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../components/ui/collapsible';
-import { Input } from '../../../components/ui/input';
-import { Label } from '../../../components/ui/label';
-import { Progress } from '../../../components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-import { useToast } from '../../../contexts/ToastContext';
+} from '../../ui/alert-dialog';
+import { Badge } from '../../ui/badge';
+import { Button } from '../../ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../ui/collapsible';
+import { Input } from '../../ui/input';
+import { Label } from '../../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 
 function SectionItem({ section, index, isOpen, isFirst, isLast, onToggle, onUpdate, onRemove, onMoveUp, onMoveDown }) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-  const { toast } = useToast();
+  const [error, setError] = useState('');
 
   const handleSectionChange = (field, value) => {
     onUpdate({
@@ -46,22 +45,17 @@ function SectionItem({ section, index, isOpen, isFirst, isLast, onToggle, onUpda
   };
 
   const handleFileChange = async (e) => {
+    setError('');
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
 
       if (file.size > 20 * 1024 * 1024) {
-        toast.error({
-          title: 'Lỗi',
-          description: 'Kích thước file không được vượt quá 20MB',
-        });
+        setError('File size exceeds 20MB limit');
         return;
       }
 
       if (section.sectionType === 'PDF' && file.type !== 'application/pdf') {
-        toast.error({
-          title: 'Lỗi',
-          description: 'Chỉ chấp nhận file PDF',
-        });
+        setError('Only PDF files are allowed');
         return;
       }
 
@@ -80,7 +74,7 @@ function SectionItem({ section, index, isOpen, isFirst, isLast, onToggle, onUpda
     if (section.isNewFile && section.url) {
       URL.revokeObjectURL(section.url);
     }
-
+    setError('');
     onUpdate({
       ...section,
       url: null,
@@ -92,21 +86,12 @@ function SectionItem({ section, index, isOpen, isFirst, isLast, onToggle, onUpda
 
   const handleRemoveSection = () => {
     setIsRemoving(true);
-    try {
-      if (section.isNewFile && section.url) {
-        URL.revokeObjectURL(section.url);
-      }
-      onRemove();
-    } catch (error) {
-      console.error('Error removing section:', error);
-      toast.error({
-        title: 'Lỗi',
-        description: 'Không thể xóa phần nội dung',
-      });
-    } finally {
-      setIsRemoving(false);
-      setShowDeleteAlert(false);
+    if (section.isNewFile && section.url) {
+      URL.revokeObjectURL(section.url);
     }
+    onRemove();
+    setIsRemoving(false);
+    setShowDeleteAlert(false);
   };
 
   useEffect(() => {
@@ -304,6 +289,14 @@ function SectionItem({ section, index, isOpen, isFirst, isLast, onToggle, onUpda
                   </div>
                 )}
               </div>
+            )}
+            {error && (
+              <Alert
+                variant="destructive"
+                className="bg-red-50 border border-red-200 text-red-800 shadow-sm rounded-md mt-6"
+              >
+                <AlertDescription className="text-sm text-red-700">{error}</AlertDescription>
+              </Alert>
             )}
           </div>
         </CollapsibleContent>

@@ -1,44 +1,44 @@
 import apiClient from '../utils/api';
 
-export const ReportService = {
-  async getNewUsersStat() {
+export const UserReportService = {
+  async getUserSkills(userId) {
     return apiClient
-      .get('/api/reports/new-users-stat')
+      .get(`/api/users/skills/${userId}`)
       .then((res) => res.data)
       .catch((err) => Promise.reject(err));
   },
 
-  async getCompletedTestsStat() {
+  async getUserTokens(userId) {
     return apiClient
-      .get('/api/reports/completed-tests-stat')
+      .get(`/api/tokens/${userId}`)
       .then((res) => res.data)
       .catch((err) => Promise.reject(err));
   },
 
-  async getCompletedExercisesStat() {
+  async getUserStreak(userId) {
     return apiClient
-      .get('/api/reports/completed-exercises-stat')
+      .get(`/api/streak/${userId}`)
       .then((res) => res.data)
       .catch((err) => Promise.reject(err));
   },
 
-  async getExerciseAverageTimeStat() {
+  async getUserExerciseStats(userId) {
     return apiClient
-      .get('/api/reports/exercise-average-time-stat')
+      .get(`/api/exercise-histories/${userId}/stats`)
       .then((res) => res.data)
       .catch((err) => Promise.reject(err));
   },
 
-  async getHourlyExerciseData() {
+  async getLectureContributions(userId) {
     return apiClient
-      .get('/api/reports/hourly-exercise-data')
+      .get(`/api/lectures/${userId}/created`)
       .then((res) => res.data)
       .catch((err) => Promise.reject(err));
   },
 
-  async getUserGrowthData() {
+  async getExerciseContributions(userId) {
     return apiClient
-      .get('/api/reports/user-growth-data')
+      .get(`/api/exercises/${userId}/created`)
       .then((res) => res.data)
       .catch((err) => Promise.reject(err));
   },

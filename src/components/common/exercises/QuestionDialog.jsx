@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import MathEditor from './MathEditor';
 import { Plus, Trash2, X } from 'lucide-react';
+import { Alert, AlertDescription } from '../../ui/alert';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
 import {
@@ -29,6 +30,7 @@ export default function QuestionDialog({
   uploadedImages,
   onImageUpload,
 }) {
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     questionId: '',
     ordinalNumber: 1,
@@ -37,8 +39,6 @@ export default function QuestionDialog({
     options: [
       { ordinalNumber: 1, content: '', isCorrect: true },
       { ordinalNumber: 2, content: '', isCorrect: false },
-      { ordinalNumber: 3, content: '', isCorrect: false },
-      { ordinalNumber: 4, content: '', isCorrect: false },
     ],
     blankAnswer: '',
     solution: '',
@@ -74,8 +74,6 @@ export default function QuestionDialog({
         options: [
           { ordinalNumber: 1, content: '', isCorrect: true },
           { ordinalNumber: 2, content: '', isCorrect: false },
-          { ordinalNumber: 3, content: '', isCorrect: false },
-          { ordinalNumber: 4, content: '', isCorrect: false },
         ],
         blankAnswer: '',
         solution: '',
@@ -173,7 +171,36 @@ export default function QuestionDialog({
     setFormData({ ...formData, options: updatedOptions });
   };
 
+  const validateForm = () => {
+    if (!formData.content.trim()) {
+      setError('Vui lòng nhập nội dung câu hỏi');
+      return false;
+    }
+    if (formData.questionType === 'MULTIPLE_CHOICE') {
+      if (formData.options.length < 2) {
+        setError('Câu hỏi trắc nghiệm cần ít nhất 2 phương án trả lời');
+        return false;
+      }
+      if (formData.options.some((o) => !o.content.trim())) {
+        setError('Vui lòng nhập nội dung cho tất cả các phương án trả lời');
+        return false;
+      }
+    } else if (formData.questionType === 'FILL_IN_THE_BLANK') {
+      if (!formData.blankAnswer.trim()) {
+        setError('Vui lòng nhập đáp án điền khuyết');
+        return false;
+      }
+    }
+    if (!formData.solution.trim()) {
+      setError('Vui lòng nhập hướng dẫn giải');
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
   const handleSave = () => {
+    if (!validateForm()) return;
     onSave(formData);
     onOpenChange(false);
   };
@@ -183,14 +210,14 @@ export default function QuestionDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto" closeDisabled={true}>
           <DialogHeader className="border-b pb-4 border-gray-300">
-            <DialogTitle className="text-2xl font-semibold text-gray-800">
+            <DialogTitle className="text-2xl font-semibold text-indigo-900/90">
               {question ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}
             </DialogTitle>
             <DialogClose className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 transition-colors">
               <X className="h-5 w-5" />
             </DialogClose>
             <DialogDescription className="mt-1 text-sm text-gray-500">
-              Vui lòng nhập thông tin chi tiết cho câu hỏi bên dưới.
+              Vui lòng nhập thông tin chi tiết cho câu hỏi bên dưới
             </DialogDescription>
           </DialogHeader>
 
@@ -204,12 +231,19 @@ export default function QuestionDialog({
                   value={formData.ordinalNumber.toString()}
                   onValueChange={(value) => setFormData({ ...formData, ordinalNumber: Number.parseInt(value) })}
                 >
-                  <SelectTrigger id="ordinalNumber" className="mt-1">
+                  <SelectTrigger
+                    id="ordinalNumber"
+                    className="border-indigo-300 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-md text-indigo-900 mt-1"
+                  >
                     <SelectValue placeholder="Chọn thứ tự" className="text-sm" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white border-indigo-200">
                     {Array.from({ length: maxOrdinalNumber + 1 }, (_, i) => i + 1).map((num) => (
-                      <SelectItem key={num} value={num.toString()} className="text-sm">
+                      <SelectItem
+                        key={num}
+                        value={num.toString()}
+                        className="text-sm text-indigo-900 hover:bg-indigo-50"
+                      >
                         {num}
                       </SelectItem>
                     ))}
@@ -222,13 +256,22 @@ export default function QuestionDialog({
                   Loại câu hỏi
                 </Label>
                 <Select value={formData.questionType} onValueChange={handleQuestionTypeChange}>
-                  <SelectTrigger id="questionType" className="mt-1">
+                  <SelectTrigger
+                    id="questionType"
+                    className="border-indigo-300 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-md text-indigo-900 mt-1"
+                  >
                     <SelectValue placeholder="Chọn loại câu hỏi" className="text-sm" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MULTIPLE_CHOICE" className="text-sm">Trắc nghiệm</SelectItem>
-                    <SelectItem value="FILL_IN_THE_BLANK" className="text-sm">Điền khuyết</SelectItem>
-                    <SelectItem value="ESSAY" className="text-sm">Tự luận</SelectItem>
+                  <SelectContent className="bg-white border-indigo-200">
+                    <SelectItem value="MULTIPLE_CHOICE" className="text-sm text-indigo-900 hover:bg-indigo-50">
+                      Câu hỏi trắc nghiệm
+                    </SelectItem>
+                    <SelectItem value="FILL_IN_THE_BLANK" className="text-sm text-indigo-900 hover:bg-indigo-50">
+                      Câu hỏi điền khuyết
+                    </SelectItem>
+                    <SelectItem value="ESSAY" className="text-sm text-indigo-900 hover:bg-indigo-50">
+                      Câu hỏi tự luận
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -341,11 +384,11 @@ export default function QuestionDialog({
 
                         {/* Add new option button as an option-like item */}
                         <div
-                          className="group relative border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer"
+                          className="group relative border-2 border-dashed border-gray-300 rounded-lg hover:border-pink-400 hover:bg-pink-50/30 transition-all cursor-pointer"
                           onClick={addOption}
                         >
                           <div className="flex items-center justify-center py-6 px-4">
-                            <div className="flex items-center space-x-2 text-gray-500 group-hover:text-blue-600">
+                            <div className="flex items-center space-x-2 text-gray-500 group-hover:text-pink-600">
                               <Plus className="h-5 w-5" />
                               <span className="text-sm font-medium">Thêm lựa chọn mới</span>
                             </div>
@@ -418,15 +461,20 @@ export default function QuestionDialog({
               </div>
             </Tabs>
           </div>
+          {error && (
+            <Alert
+              variant="destructive"
+              className="bg-red-50 border border-red-200 text-red-800 shadow-sm rounded-md mt-0"
+            >
+              <AlertDescription className="text-sm text-red-700">{error}</AlertDescription>
+            </Alert>
+          )}
 
           <DialogFooter className="pt-5 border-gray-300 gap-2">
             <Button variant="outline" className="border-gray-500/50" onClick={() => onOpenChange(false)}>
               Hủy
             </Button>
-            <Button
-              onClick={handleSave}
-              className="bg-purple-500 hover:bg-purple-600"
-            >
+            <Button onClick={handleSave} className="bg-pink-500 hover:bg-pink-600">
               {question ? 'Cập nhật câu hỏi' : 'Lưu câu hỏi'}
             </Button>
           </DialogFooter>

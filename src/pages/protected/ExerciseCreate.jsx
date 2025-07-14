@@ -15,19 +15,18 @@ export default function ExerciseCreate() {
 
   useEffect(() => {
     let isMounted = true;
-
     async function fetchLectures() {
       try {
-        const response = await LectureService.getLectures();
         if (isMounted) {
+          const response = await LectureService.getLectures();
           setLectures(response.data || []);
         }
       } catch (error) {
-        console.error('Error fetching lectures:', error);
+        const msg = error.response?.data?.message || error.message || 'Error loading lectures';
         if (isMounted) {
           toast.error({
-            title: 'Lỗi tải dữ liệu',
-            description: 'Không thể tải danh sách bài học. Vui lòng thử lại.',
+            title: 'Fetch Data Error',
+            description: msg,
           });
         }
       } finally {
@@ -36,9 +35,7 @@ export default function ExerciseCreate() {
         }
       }
     }
-
     fetchLectures();
-
     return () => {
       isMounted = false;
     };

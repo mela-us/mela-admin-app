@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, Eye } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Loader from '../../components/Loader';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
@@ -9,7 +10,6 @@ import DashboardLayout from '../../layouts/DashboardLayout';
 import { LectureService } from '../../services/LectureService';
 import { LevelService } from '../../services/LevelService';
 import { TopicService } from '../../services/TopicService';
-import Loader from '../../components/Loader';
 
 export default function LectureDetail() {
   const { id } = useParams();
@@ -76,8 +76,8 @@ export default function LectureDetail() {
   if (!lecture) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-red-600 text-lg">Không tìm thấy bài học</div>
+        <div className="flex justify-center items-center h-10">
+          <div className="text-purple-600 text-lg">Không tìm thấy bài học</div>
         </div>
       </DashboardLayout>
     );
@@ -95,13 +95,15 @@ export default function LectureDetail() {
           >
             <ChevronLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
           </Button>
-          <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-700 to-pink-500 bg-clip-text text-transparent ml-2">
+          <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent ml-2">
             Chi tiết bài học
           </h2>
         </div>
         <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-50/20">
           <CardHeader className="bg-indigo-200/50 border-b border-indigo-200">
-            <CardTitle className="text-xl font-bold text-gray-700/90 flex items-center gap-2">Thông tin bài học</CardTitle>
+            <CardTitle className="text-xl font-bold text-gray-700/90 flex items-center gap-2">
+              Thông tin bài học
+            </CardTitle>
             <CardDescription className="text-gray-700/80">Thông tin chi tiết của bài học</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 pt-6">
@@ -161,7 +163,7 @@ export default function LectureDetail() {
             <CardDescription className="text-gray-700/90">Các section thuộc bài học</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            {lecture.sections.length === 0 ? (
+            {!lecture.sections || lecture.sections.length === 0 ? (
               <p className="text-indigo-600/70 text-sm">Chưa có section nào cho bài học này.</p>
             ) : (
               <div className="space-y-4">

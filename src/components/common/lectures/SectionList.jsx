@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SectionItem from './SectionItem';
 import { CirclePlus } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
 
 function SectionList({ sections, onChange }) {
   const [openSections, setOpenSections] = useState({});

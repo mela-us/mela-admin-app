@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import LectureForm from '../../components/common/lectures/LectureForm';
+import Loader from '../../components/Loader';
 import { useToast } from '../../contexts/ToastContext';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { LectureService } from '../../services/LectureService';
 import { LevelService } from '../../services/LevelService';
 import { TopicService } from '../../services/TopicService';
-import Loader from '../../components/Loader';
 
 export default function LectureEdit() {
   const { id } = useParams();
@@ -18,26 +18,24 @@ export default function LectureEdit() {
 
   useEffect(() => {
     let isMounted = true;
-
     async function fetchData() {
       try {
-        const [lectureResData, levelsResData, topicsResData] = await Promise.all([
-          LectureService.getLectureById(id),
-          LevelService.getLevels(),
-          TopicService.getTopics(),
-        ]);
-
         if (isMounted) {
+          const [lectureResData, levelsResData, topicsResData] = await Promise.all([
+            LectureService.getLectureById(id),
+            LevelService.getLevels(),
+            TopicService.getTopics(),
+          ]);
           setLecture(lectureResData.data);
-          setLevels([{ levelId: 'null', name: 'Chưa có' }, ...(levelsResData.data || [])]);
-          setTopics([{ topicId: 'null', name: 'Chưa có' }, ...(topicsResData.data || [])]);
+          setLevels([...(levelsResData.data || [])]);
+          setTopics([...(topicsResData.data || [])]);
         }
       } catch (error) {
-        console.error('Error fetching lecture data:', error);
+        const msg = error.response?.data?.message || error.message || 'Error fetching lecture data';
         if (isMounted) {
           toast.error({
-            title: 'Lỗi!',
-            description: 'Không thể tải dữ liệu bài học. Vui lòng thử lại.',
+            title: 'Error Loading Data',
+            description: msg,
           });
         }
       } finally {
@@ -63,8 +61,8 @@ export default function LectureEdit() {
   if (!lecture) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-red-600 text-lg">Không tìm thấy bài học</div>
+        <div className="flex justify-center items-center h-10">
+          <div className="text-purple-600 text-lg">Không tìm thấy bài học</div>
         </div>
       </DashboardLayout>
     );

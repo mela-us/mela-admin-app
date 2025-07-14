@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import LectureForm from '../../components/common/lectures/LectureForm';
+import Loader from '../../components/Loader';
 import { useToast } from '../../contexts/ToastContext';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { LevelService } from '../../services/LevelService';
 import { TopicService } from '../../services/TopicService';
-import Loader from '../../components/Loader';
 
 export default function LectureCreate() {
   const [isLoading, setIsLoading] = useState(true);
@@ -16,17 +16,20 @@ export default function LectureCreate() {
     let isMounted = true;
     async function fetchData() {
       try {
-        const [levelsResData, topicsResData] = await Promise.all([LevelService.getLevels(), TopicService.getTopics()]);
         if (isMounted) {
-          setLevels([{ levelId: 'null', name: 'Chưa có' }, ...(levelsResData.data || [])]);
-          setTopics([{ topicId: 'null', name: 'Chưa có' }, ...(topicsResData.data || [])]);
+          const [levelsResData, topicsResData] = await Promise.all([
+            LevelService.getLevels(),
+            TopicService.getTopics(),
+          ]);
+          setLevels([...(levelsResData.data || [])]);
+          setTopics([...(topicsResData.data || [])]);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        const msg = error.response?.data?.message || error.message || 'Error fetching topics and levels';
         if (isMounted) {
           toast.error({
-            title: 'Lỗi!',
-            description: 'Có lỗi xảy ra khi tải dữ liệu.',
+            title: 'Error Loading Data',
+            description: msg,
           });
         }
       } finally {

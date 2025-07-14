@@ -77,68 +77,34 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     dispatch({ type: 'LOGIN_START' });
-    let userRole = null;
     try {
       const resData = await AuthService.login(username, password);
-      const { accessToken, refreshToken, role } = resData;
+      const { accessToken, refreshToken } = resData;
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
-      userRole = role?.toLowerCase();
     } catch (error) {
-      if (error.response) {
-        const { status, message, timestamp } = error.response.data;
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        dispatch({
-          type: 'LOGIN_FAILURE',
-          payload: message || 'Login failed',
-        });
-      } else if (error.request) {
-        console.error('Network error or no response from server:', error.request);
-        dispatch({
-          type: 'LOGIN_FAILURE',
-          payload: 'Network error or no response from server',
-        });
-      } else {
-        console.error('Unexpected error:', error.message);
-        dispatch({
-          type: 'LOGIN_FAILURE',
-          payload: 'Unexpected error occurred',
-        });
-      }
+      const msg = error.response?.data?.message || error.message || 'Fail to login';
+      dispatch({
+        type: 'LOGIN_FAILURE',
+        payload: msg,
+      });
       return;
     }
-
     try {
       const resData = await UserService.getProfile();
-      const { user, message } = resData;
-      user.role = userRole;
+      const { user } = resData;
+      user.userRole = user.userRole.toLowerCase();
       localStorage.setItem('user', JSON.stringify(user));
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-      console.log(`Success: ${message}`);
     } catch (error) {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
-      if (error.response) {
-        const { status, message, timestamp } = error.response.data;
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        dispatch({
-          type: 'LOGIN_FAILURE',
-          payload: message || 'Login failed',
-        });
-      } else if (error.request) {
-        console.error('Network error or no response from server:', error.request);
-        dispatch({
-          type: 'LOGIN_FAILURE',
-          payload: 'Network error or no response from server',
-        });
-      } else {
-        console.error('Unexpected error:', error.message);
-        dispatch({
-          type: 'LOGIN_FAILURE',
-          payload: 'Unexpected error occurred',
-        });
-      }
+      const msg = error.response?.data?.message || error.message || 'Fail to fetch user profile';
+      dispatch({
+        type: 'LOGIN_FAILURE',
+        payload: msg,
+      });
       return;
     }
     clearError();
@@ -147,19 +113,14 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const resData = await AuthService.logout(
-        localStorage.getItem('accessToken'),
-        localStorage.getItem('refreshToken'),
-      );
-      console.log('Logout successful:', resData.message);
+      await AuthService.logout(localStorage.getItem('accessToken'), localStorage.getItem('refreshToken'));
     } catch (error) {
-      const { status, message, timestamp } = error.response?.data || {};
-      console.error(`Logout error ${status}: ${message} at ${timestamp}`);
+      const msg = error.response?.data?.message || error.message || 'Fail to logout';
+      console.error(`Logout error: ${msg}`);
     }
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
-    dispatch({ type: 'SET_LOADING', payload: false });
     dispatch({ type: 'LOGOUT' });
   };
 

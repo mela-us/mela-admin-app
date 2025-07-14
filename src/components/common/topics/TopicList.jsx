@@ -6,10 +6,9 @@ import {
   ArrowUpZA,
   BadgeCheck,
   BadgeX,
-  ExternalLink,
+  Clock,
   Grid,
   Info,
-  MoreVertical,
   Plus,
   Search,
   SquarePen,
@@ -39,7 +38,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../../ui/dropdown-menu';
 import { Input } from '../../ui/input';
@@ -57,142 +55,113 @@ function TopicList({ topics, setTopics }) {
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc');
 
-  const handleAddTopic = async ({ topicName, filename, fileBlob }) => {
+  const handleAddTopic = async ({ topicName, imageName, fileBlob }) => {
     try {
-      let filenamePath = null;
-      filename = filename || fileBlob?.name;
-      if (filename) {
-        const presinedResData = await MediaService.getUploadUrl(filename, 'LEVEL');
-        const { preSignedUrl, fileUrl } = presinedResData;
-        if (fileBlob) {
-          await MediaService.uploadFile(preSignedUrl, fileBlob);
-        }
-        filenamePath = fileUrl;
-      }
+      imageName = (imageName || fileBlob?.name) + topicName.replace(/\s+/g, '-').toLowerCase();
+      const preSignedResData = await MediaService.getUploadUrl(imageName, 'TOPIC');
+      const { preSignedUrl, fileUrl } = preSignedResData;
+      await MediaService.uploadFile(preSignedUrl, fileBlob);
 
-      const resData = await TopicService.createTopic(topicName, filenamePath);
-      const { message, data } = resData;
+      const createTopicResData = await TopicService.createTopic(topicName, fileUrl);
+      const { message, data } = createTopicResData;
       setTopics([...topics, data]);
       toast.success({
-        title: 'Thêm chủ đề thành công',
-        description: message || 'Chủ đề mới đã được thêm thành công',
+        title: 'Create Topic Success',
+        description: message,
       });
       setIsAddDialogOpen(false);
+      return true;
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error adding topic:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error adding topic';
       toast.error({
-        title: 'Lỗi thêm chủ đề',
-        description: msg || 'Không thể thêm chủ đề mới',
+        title: 'Create Topic Error',
+        description: msg,
       });
     }
+    return false;
   };
 
-  const handleEditTopic = async ({ topicId, topicName, filename, fileBlob }) => {
+  const handleEditTopic = async ({ topicId, topicName, imageName, fileBlob }) => {
     try {
-      let filenamePath = null;
-      filename = filename || fileBlob?.name;
-      if (filename) {
-        const presinedResData = await MediaService.getUploadUrl(filename, 'LEVEL');
-        const { preSignedUrl, fileUrl } = presinedResData;
-        if (fileBlob) {
-          await MediaService.uploadFile(preSignedUrl, fileBlob);
-        }
-        filenamePath = fileUrl;
+      let imageUrl = null;
+      if (fileBlob) {
+        imageName = (imageName || fileBlob.name) + topicName.replace(/\s+/g, '-').toLowerCase();
+        const preSinedResData = await MediaService.getUploadUrl(imageName, 'TOPIC');
+        const { preSignedUrl, fileUrl } = preSinedResData;
+        await MediaService.uploadFile(preSignedUrl, fileBlob);
+        imageUrl = fileUrl;
       }
 
-      const resData = await TopicService.updateTopic(topicId, topicName, filenamePath);
-      const { message } = resData;
-      if (filenamePath) {
-        setTopics(
-          topics.map((topic) =>
-            topic.topicId === topicId ? { ...topic, name: topicName, imageUrl: filenamePath } : topic,
-          ),
-        );
-      } else {
-        setTopics(topics.map((topic) => (topic.topicId === topicId ? { ...topic, name: topicName } : topic)));
-      }
-
+      const updateTopicResData = await TopicService.updateTopic(topicId, topicName, imageUrl);
+      const { message } = updateTopicResData;
+      setTopics(
+        topics.map((topic) => {
+          if (topic.topicId === topicId) {
+            const updatedTopic = { ...topic };
+            updatedTopic.name = topicName || updatedTopic.name;
+            updatedTopic.imageUrl = imageUrl || updatedTopic.imageUrl;
+            updatedTopic.rejectedReason = null;
+            if (updatedTopic.status !== 'VERIFIED') {
+              updatedTopic.status = 'PENDING';
+            }
+            return updatedTopic;
+          }
+          return topic;
+        }),
+      );
       toast.success({
-        title: 'Cập nhật chủ đề thành công',
-        description: message || 'Chủ đề đã được cập nhật thành công',
+        title: 'Update Topic Success',
+        description: message,
       });
       setIsEditDialogOpen(false);
       setCurrentTopic(null);
+      return true;
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error updating topic:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error updating topic';
       toast.error({
-        title: 'Lỗi cập nhật chủ đề',
-        description: msg || 'Không thể cập nhật chủ đề',
+        title: 'Update Topic Error',
+        description: msg,
       });
     }
+    return false;
   };
 
-  const handleDeleteTopic = async (id) => {
+  const handleDeleteTopic = async (topicId) => {
     try {
-      const resData = await TopicService.deleteTopic(id);
+      const resData = await TopicService.deleteTopic(topicId);
       const { message } = resData;
-      setTopics(topics.filter((topic) => topic.topicId !== id));
+      setTopics(topics.filter((topic) => topic.topicId !== topicId));
       toast.success({
-        title: 'Xóa chủ đề thành công',
-        description: message || 'Chủ đề đã được xóa thành công',
+        title: 'Delete Topic Success',
+        description: message,
       });
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error deleting topic:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error deleting topic';
       toast.error({
-        title: 'Lỗi xóa chủ đề',
-        description: msg || 'Không thể xóa chủ đề',
+        title: 'Delete Topic Error',
+        description: msg,
       });
     }
   };
 
-  const handleApproveTopic = async (id) => {
+  const handleApproveTopic = async (topicId) => {
     try {
-      const resData = await TopicService.approveTopic(id);
+      const resData = await TopicService.approveTopic(topicId);
       const { message } = resData;
       setTopics(
-        topics.map((topic) => (topic.topicId === id ? { ...topic, status: 'VERIFIED', rejectedReason: null } : topic)),
+        topics.map((topic) =>
+          topic.topicId === topicId ? { ...topic, status: 'VERIFIED', rejectedReason: null } : topic,
+        ),
       );
       toast.success({
-        title: 'Phê duyệt chủ đề thành công',
-        description: message || 'Chủ đề đã được phê duyệt',
+        title: 'Approve Topic Success',
+        description: message,
       });
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error approving topic:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error approving topic';
       toast.error({
-        title: 'Lỗi phê duyệt chủ đề',
-        description: msg || 'Không thể phê duyệt chủ đề',
+        title: 'Approve Topic Error',
+        description: msg,
       });
     }
   };
@@ -205,28 +174,28 @@ function TopicList({ topics, setTopics }) {
       const resData = await TopicService.denyTopic(topicId, rejectedReason);
       const { message } = resData;
       setTopics(
-        topics.map((topic) => (topic.topicId === topicId ? { ...topic, status: 'DENIED', rejectedReason } : topic)),
+        topics.map((topic) =>
+          topic.topicId === topicId
+            ? {
+              ...topic,
+              status: 'DENIED',
+              rejectedReason: rejectedReason || 'Liên hệ quản trị viên để biết thêm chi tiết',
+            }
+            : topic,
+        ),
       );
       toast.success({
-        title: 'Từ chối chủ đề thành công',
-        description: message || 'Chủ đề đã bị từ chối.',
+        title: 'Deny Topic Success',
+        description: message,
       });
       setIsDenyDialogOpen(false);
       setDenyTopic(null);
       setRejectedReason('');
     } catch (error) {
-      let msg = '';
-      if (error.response) {
-        const { status, message, timestamp } = error.response?.data || {};
-        console.error(`Error ${status}: ${message} at ${timestamp}`);
-        msg = message;
-      } else {
-        console.error('Error denying topic:', error);
-        msg = error.message;
-      }
+      const msg = error.response?.data?.message || error.message || 'Error denying topic';
       toast.error({
-        title: 'Lỗi từ chối chủ đề',
-        description: msg || 'Không thể từ chối chủ đề',
+        title: 'Deny Topic Error',
+        description: msg,
       });
     }
   };
@@ -254,13 +223,13 @@ function TopicList({ topics, setTopics }) {
 
   const filteredAndSortedTopics = topics
     .filter((topic) => {
-      const matchesSearch = topic.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = topic.name?.toLowerCase().includes(searchTerm?.toLowerCase());
       const matchesStatus = statusFilter === 'All' || topic.status === statusFilter;
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
-      const aValue = a.name.toLowerCase();
-      const bValue = b.name.toLowerCase();
+      const aValue = a.name?.toLowerCase();
+      const bValue = b.name?.toLowerCase();
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
@@ -285,7 +254,7 @@ function TopicList({ topics, setTopics }) {
   };
 
   const getStatusCount = (status) => {
-    return topics.filter((topic) => status === 'All' || topic.status === status).length;
+    return topics.filter((topic) => status === 'All' || topic.status === status)?.length || 0;
   };
 
   return (
@@ -297,13 +266,13 @@ function TopicList({ topics, setTopics }) {
             <Grid className="h-7 w-7 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Quản lý chủ đề</h2>
-            <p className="text-gray-600 text-sm">Tổng cộng {topics.length} chủ đề</p>
+            <h2 className="text-xl font-bold text-gray-700">Quản lý chủ đề</h2>
+            <p className="text-gray-600 text-sm">Tổng cộng {topics?.length || 0} chủ đề</p>
           </div>
         </div>
         <Button
           onClick={() => setIsAddDialogOpen(true)}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium px-5 py-2 rounded-3xl shadow transition-all duration-200"
+          className="button-bg-color text-white font-medium px-5 py-2 rounded-3xl shadow transition-all duration-200"
         >
           <Plus className="mr-2 h-5 w-5" /> <span>Thêm mới</span>
         </Button>
@@ -330,7 +299,7 @@ function TopicList({ topics, setTopics }) {
               { key: 'All', label: 'Tất cả', color: 'bg-gray-100 text-gray-700 hover:bg-gray-200' },
               { key: 'PENDING', label: 'Chờ duyệt', color: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' },
               { key: 'VERIFIED', label: 'Đã duyệt', color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-              { key: 'DENIED', label: 'Bị từ chối', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
+              { key: 'DENIED', label: 'Từ chối', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
             ].map(({ key, label, color }) => (
               <button
                 key={key}
@@ -392,7 +361,7 @@ function TopicList({ topics, setTopics }) {
                   Trạng thái &quot;{statusFilter}&quot;
                 </Badge>
               )}
-              <span className="text-sm text-gray-500">({filteredAndSortedTopics.length} kết quả)</span>
+              <span className="text-sm text-gray-500">({filteredAndSortedTopics?.length || 0} kết quả)</span>
             </div>
             <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" onClick={clearFilters}>
               Xóa bộ lọc
@@ -402,25 +371,13 @@ function TopicList({ topics, setTopics }) {
       </div>
 
       {/* Results */}
-      {filteredAndSortedTopics.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center py-20 px-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
-          <div className="relative mb-6">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 blur-xl"></div>
-            <div className="relative p-4 bg-white rounded-full shadow-lg">
-              <Search className="h-12 w-12 text-gray-400" />
-            </div>
-          </div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">Không tìm thấy kết quả</h3>
-          <p className="text-gray-500 mb-6 max-w-md leading-relaxed">
-            Không tìm thấy chủ đề nào phù hợp với điều kiện tìm kiếm. Hãy thử điều chỉnh bộ lọc hoặc tạo chủ đề mới.
+      {filteredAndSortedTopics?.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center py-16 px-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+          <Search className="h-16 w-16 text-gray-300 mb-4" />
+          <h3 className="text-lg font-medium text-gray-600 mb-1">Không tìm thấy kết quả</h3>
+          <p className="text-gray-500 mb-4 max-w-md">
+            Không tìm thấy chủ đề nào phù hợp với điều kiện tìm kiếm. Hãy thử điều chỉnh bộ lọc hoặc chọn thêm mới.
           </p>
-          <Button
-            onClick={() => setIsAddDialogOpen(true)}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Tạo chủ đề mới
-          </Button>
         </div>
       ) : (
         <motion.div
@@ -471,16 +428,19 @@ function TopicList({ topics, setTopics }) {
 
                   {/* Enhanced Action Menu */}
                   {(topic.status === 'PENDING' || topic.status === 'DENIED') && (
-                    <div className="absolute top-2.5 right-3 opacity-50 group-hover:opacity-100">
+                    <div className="absolute top-2.5 right-3 opacity-80 group-hover:opacity-100">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 bg-gray-800 backdrop-blur-sm hover:bg-gray-900 text-gray-200 hover:text-white rounded-full shadow-lg"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
+                          <div className="relative">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 bg-amber-500 text-gray-200 shadow-lg border-2 border-amber-400 backdrop-blur-sm hover:bg-amber-600 hover:text-white"
+                            >
+                              <Clock className="h-4 w-4" />
+                            </Button>
+                            <div className="absolute top-0 right-0 h-2 w-2 bg-red-500/50 rounded-full animate-ping"></div>
+                          </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
@@ -499,7 +459,7 @@ function TopicList({ topics, setTopics }) {
                               </AlertDialogTrigger>
                               <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-xl">Xác nhận duyệt</AlertDialogTitle>
+                                  <AlertDialogTitle className="text-xl">Xác nhận</AlertDialogTitle>
                                   <AlertDialogDescription className="text-gray-600">
                                     Bạn có chắc chắn muốn phê duyệt chủ đề &quot;{topic.name}&quot;?
                                   </AlertDialogDescription>
@@ -508,7 +468,7 @@ function TopicList({ topics, setTopics }) {
                                   <AlertDialogCancel className="rounded-lg hover:bg-gray-100">Hủy</AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() => handleApproveTopic(topic.topicId)}
-                                    className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg"
+                                    className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white rounded-lg"
                                   >
                                     Phê duyệt
                                   </AlertDialogAction>
@@ -532,7 +492,7 @@ function TopicList({ topics, setTopics }) {
                 {/* Enhanced Content Section */}
                 <CardContent className="p-4 relative z-10">
                   <div className="space-y-3">
-                    {/* Title with Tooltip */}
+                    {/* Title */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-base font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-purple-600 transition-colors duration-200">
@@ -556,10 +516,7 @@ function TopicList({ topics, setTopics }) {
                               <Info className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent
-                            className="sm:max-w-lg border-0 shadow-2xl rounded-2xl overflow-hidden"
-                            closeDisabled={true}
-                          >
+                          <DialogContent className="max-w-lg overflow-hidden" closeDisabled={true}>
                             <DialogHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 -m-6 mb-4">
                               <div className="flex items-center justify-between">
                                 <DialogTitle className="text-lg font-semibold">Lý do bị từ chối</DialogTitle>
@@ -570,7 +527,7 @@ function TopicList({ topics, setTopics }) {
                             </DialogHeader>
                             <div className="px-1 pb-2">
                               <div className="text-sm text-red-800 whitespace-pre-wrap leading-relaxed p-1 rounded-lg">
-                                {topic.rejectedReason || 'Không có lý do cụ thể được cung cấp.'}
+                                {topic.rejectedReason || 'Liên hệ quản trị viên để biết thêm chi tiết'}
                               </div>
                             </div>
                           </DialogContent>
@@ -584,7 +541,7 @@ function TopicList({ topics, setTopics }) {
                         variant="outline"
                         size="sm"
                         onClick={() => openEditDialog(topic)}
-                        className="flex-1 h-8 text-xs bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 rounded-lg transition-all duration-200"
+                        className="flex-1 h-8 text-xs bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 hover:text-blue-800 rounded-lg transition-all duration-200"
                       >
                         <SquarePen className="mr-1 h-3 w-3" />
                         Sửa
@@ -594,7 +551,7 @@ function TopicList({ topics, setTopics }) {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex-1 h-8 text-xs bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:border-red-300 rounded-lg transition-all duration-200"
+                            className="flex-1 h-8 text-xs bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:border-red-300 hover:text-red-800 rounded-lg transition-all duration-200"
                           >
                             <Trash2 className="mr-1 h-3 w-3" />
                             Xóa
@@ -602,7 +559,7 @@ function TopicList({ topics, setTopics }) {
                         </AlertDialogTrigger>
                         <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="text-xl">Xác nhận xóa</AlertDialogTitle>
+                            <AlertDialogTitle className="text-xl">Xác nhận</AlertDialogTitle>
                             <AlertDialogDescription className="text-gray-600">
                               Bạn có chắc chắn muốn xóa chủ đề &quot;{topic.name}&quot;? Hành động này không thể hoàn
                               tác.
@@ -649,17 +606,17 @@ function TopicList({ topics, setTopics }) {
       <AlertDialog open={denyTopic?.status === 'PENDING' || denyTopic?.status === 'DENIED'}>
         <AlertDialogContent className="rounded-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Từ chối chủ đề</AlertDialogTitle>
+            <AlertDialogTitle>Từ chối</AlertDialogTitle>
             <AlertDialogDescription>
-              Vui lòng nhập lý do từ chối chủ đề &quot;{denyTopic?.name}&quot;.
+              Vui lòng nhập lý do từ chối duyệt chủ đề &quot;{denyTopic?.name}&quot;.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-4">
+          <div className="py-2">
             <Textarea
               value={rejectedReason}
               onChange={(e) => setRejectedReason(e.target.value)}
               placeholder="Nhập lý do từ chối"
-              className="h-12 text-gray-700"
+              className="h-3 text-gray-700"
             />
           </div>
           <AlertDialogFooter>

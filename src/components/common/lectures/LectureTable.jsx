@@ -5,9 +5,9 @@ import {
   ExternalLink,
   Eye,
   FileText,
-  Info,
   MoreVertical,
   Pencil,
+  Plus,
   Trash2,
   X,
   XCircle,
@@ -37,24 +37,30 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
 import { Textarea } from '../../ui/textarea';
 
-function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny }) {
+function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny, userRole }) {
   const [rejectedReason, setRejectedReason] = useState('');
 
   const getLevelName = (id) => {
     const level = levels.find((level) => level.levelId === id);
-    return level ? level.name : 'Chưa có';
+    return level ? level.name : 'Chưa có cấp độ';
   };
 
   const getTopicName = (id) => {
     const topic = topics.find((topic) => topic.topicId === id);
-    return topic ? topic.name : 'Chưa có';
+    return topic ? topic.name : 'Chưa có chủ đề';
+  };
+
+  const getCreatorName = (creator) => {
+    if (!creator) return 'Admin';
+    return creator.fullName || creator.username || 'Không xác định';
   };
 
   const getStatusBadge = (status, reason) => {
-    reason = rejectedReason?.trim() || 'Liên hệ quản trị viên để biết thêm chi tiết.';
+    reason = rejectedReason?.trim() || reason || 'Liên hệ quản trị viên để biết thêm chi tiết';
     const styles = {
       PENDING: 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white',
-      DENIED: 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md hover:bg-red-700 cursor-pointer ring-2 ring-red-800',
+      DENIED:
+        'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md hover:bg-red-700 cursor-pointer ring-2 ring-red-800',
       VERIFIED: 'bg-gradient-to-r from-green-400 to-emerald-500 text-white',
     };
     return (
@@ -69,7 +75,7 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
                 {status}
               </Badge>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-lg border-0 shadow-2xl rounded-2xl overflow-hidden" closeDisabled={true}>
+            <DialogContent className="max-w-lg shadow-2xl rounded-2xl overflow-hidden" closeDisabled={true}>
               <DialogHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 -m-6 mb-4">
                 <div className="flex items-center justify-between">
                   <DialogTitle className="text-lg font-semibold">Lý do bị từ chối</DialogTitle>
@@ -79,9 +85,7 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
                 </div>
               </DialogHeader>
               <div className="px-1 pb-2">
-                <div className="text-sm text-red-800 whitespace-pre-wrap leading-relaxed p-1 rounded-lg">
-                  {reason || 'Không có lý do cụ thể được cung cấp.'}
-                </div>
+                <div className="text-sm text-red-800 whitespace-pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
               </div>
             </DialogContent>
           </Dialog>
@@ -97,7 +101,7 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
     );
   };
 
-  if (lectures.length === 0) {
+  if (lectures?.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center text-center py-16 px-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
         <FileText className="h-16 w-16 text-gray-300 mb-4" />
@@ -119,6 +123,7 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
             <TableHead className="text-center py-3 font-semibold text-gray-700 w-[150px]">Chủ đề</TableHead>
             <TableHead className="text-center py-3 font-semibold text-gray-700 w-[80px]">STT</TableHead>
             <TableHead className="text-center py-3 font-semibold text-gray-700 w-[100px]">Sections</TableHead>
+            <TableHead className="text-center py-3 font-semibold text-gray-700 w-[120px]">Người tạo</TableHead>
             <TableHead className="text-center py-3 font-semibold text-gray-700 w-[120px]">Trạng thái</TableHead>
             <TableHead className="text-right py-3 font-semibold text-gray-700 w-[100px] rounded-tr-lg">
               Thao tác
@@ -126,7 +131,7 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
           </TableRow>
         </TableHeader>
         <TableBody>
-          {lectures.map((lecture, index) => (
+          {lectures?.map((lecture, index) => (
             <TableRow
               key={lecture.lectureId}
               className={`hover:bg-violet-300/30 border-b border-x  ${index % 2 === 0 ? 'bg-white' : 'bg-gray-100/80'}`}
@@ -166,7 +171,19 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
                   variant="outline"
                   className="bg-green-50 text-green-700 hover:bg-green-100 px-2 py-0.5 cursor-default font-medium text-center whitespace-normal break-words max-w-full"
                 >
-                  {lecture.sections.length}
+                  {lecture.sections?.length || 0}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-center py-4 w-[120px]">
+                <Badge
+                  variant="outline"
+                  className={`px-2 py-1 cursor-default text-center whitespace-normal break-words max-w-full ${
+                    lecture.creator
+                      ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                      : 'bg-red-50 text-red-700 hover:bg-red-100'
+                  }`}
+                >
+                  {getCreatorName(lecture.creator)}
                 </Badge>
               </TableCell>
               <TableCell className="text-center py-4 w-[120px]">
@@ -196,15 +213,17 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
                         Thông tin
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to={`/lectures/${lecture.lectureId}/edit`}
-                        className="text-indigo-600 focus:text-indigo-600 rounded-lg"
-                      >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Chỉnh sửa
-                      </Link>
-                    </DropdownMenuItem>
+                    {(userRole.toUpperCase() === 'ADMIN' || lecture.status !== 'VERIFIED') && (
+                      <DropdownMenuItem asChild>
+                        <Link
+                          to={`/lectures/${lecture.lectureId}/edit`}
+                          className="text-indigo-600 focus:text-indigo-600 rounded-lg"
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Chỉnh sửa
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link
                         to={`/exercises?lecture=${lecture.lectureId}`}
@@ -214,7 +233,8 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
                         Bài tập
                       </Link>
                     </DropdownMenuItem>
-                    {(lecture.status === 'PENDING' || lecture.status === 'DENIED') && (
+                    {userRole.toUpperCase() === 'ADMIN' &&
+                      (lecture.status === 'PENDING' || lecture.status === 'DENIED') && (
                       <>
                         <DropdownMenuSeparator className="bg-gray-200" />
                         <AlertDialog>
@@ -224,14 +244,14 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
                               onSelect={(e) => e.preventDefault()}
                             >
                               <CircleCheck className="mr-2 h-4 w-4" />
-                              Phê duyệt
+                                Phê duyệt
                             </DropdownMenuItem>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
                             <AlertDialogHeader>
                               <AlertDialogTitle className="text-xl">Xác nhận duyệt</AlertDialogTitle>
                               <AlertDialogDescription className="text-gray-600">
-                                Bạn có chắc chắn muốn phê duyệt bài học &quot;{lecture.name}&quot;?
+                                  Bạn có chắc chắn muốn phê duyệt bài học &quot;{lecture.name}&quot;?
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -240,7 +260,7 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
                                 onClick={() => onApprove(lecture.lectureId)}
                                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg"
                               >
-                                Phê duyệt
+                                  Phê duyệt
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -252,14 +272,14 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
                               onSelect={(e) => e.preventDefault()}
                             >
                               <XCircle className="mr-2 h-4 w-4" />
-                              Từ chối
+                                Từ chối
                             </DropdownMenuItem>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
                             <AlertDialogHeader>
-                              <AlertDialogTitle className="text-xl">Từ chối bài học</AlertDialogTitle>
+                              <AlertDialogTitle className="text-xl">Xác nhận từ chối</AlertDialogTitle>
                               <AlertDialogDescription className="text-gray-600">
-                                Vui lòng nhập lý do từ chối bài học &quot;{lecture.name}&quot;.
+                                  Vui lòng nhập lý do từ chối duyệt bài học &quot;{lecture.name}&quot;.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <div className="py-4">
@@ -267,15 +287,17 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
                                 value={rejectedReason}
                                 onChange={(e) => setRejectedReason(e.target.value)}
                                 placeholder="Nhập lý do từ chối"
-                                className="h-12 text-gray-700"
+                                className="h-4 text-gray-700"
                               />
                             </div>
                             <AlertDialogFooter>
                               <AlertDialogCancel
-                                onClick={() => {setRejectedReason('');}}
+                                onClick={() => {
+                                  setRejectedReason('');
+                                }}
                                 className="rounded-lg hover:bg-gray-100"
                               >
-                                Hủy
+                                  Hủy
                               </AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => {
@@ -284,43 +306,47 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny })
                                 }}
                                 className="bg-orange-600 hover:bg-orange-700 text-white"
                               >
-                                Xác nhận
+                                  Xác nhận
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
                       </>
                     )}
-                    <DropdownMenuSeparator className="bg-gray-200" />
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <DropdownMenuItem
-                          className="text-red-600 focus:text-red-600 rounded-lg"
-                          onSelect={(e) => e.preventDefault()}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
-                        </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-xl">Xác nhận xóa</AlertDialogTitle>
-                          <AlertDialogDescription className="text-gray-600">
-                            Bạn có chắc chắn muốn xóa bài học &quot;{lecture.name}&quot;? Hành động này không thể hoàn tác và có
-                            thể ảnh hưởng đến các bài tập liên quan.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="rounded-lg hover:bg-gray-100">Hủy</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => onDelete(lecture.lectureId)}
-                            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg"
-                          >
-                            Xóa
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {(userRole.toUpperCase() === 'ADMIN' || lecture.status !== 'VERIFIED') && (
+                      <>
+                        <DropdownMenuSeparator className="bg-gray-200" />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              className="text-red-600 focus:text-red-600 rounded-lg"
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Xóa
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-xl">Xác nhận xóa</AlertDialogTitle>
+                              <AlertDialogDescription className="text-gray-600">
+                                Bạn có chắc chắn muốn xóa bài học &quot;{lecture.name}&quot;? Hành động này không thể
+                                hoàn tác và có thể ảnh hưởng đến các bài tập liên quan.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="rounded-lg hover:bg-gray-100">Hủy</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => onDelete(lecture.lectureId)}
+                                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg"
+                              >
+                                Xóa
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

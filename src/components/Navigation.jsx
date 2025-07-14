@@ -1,7 +1,7 @@
 import { BookOpen, ChevronDown } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
-export default function Navigation({ items, title }) {
+export default function Navigation({ items, title, level }) {
   return (
     <nav className="fixed z-50 w-64 h-screen flex flex-col border-r border-gray-200 shadow-md sidebar-image">
       {/* Sidebar Title */}
@@ -10,10 +10,8 @@ export default function Navigation({ items, title }) {
           <BookOpen className="h-6 w-6 text-white" />
         </div>
         <div>
-          <span className="text-xl font-extrabold bg-clip-text text-transparent bg-purple-500">
-            {title || 'MELA WEB'}
-          </span>
-          <p className="text-sm font-semibold text-gray-200">Quản lý nội dung học</p>
+          <span className="text-xl font-extrabold bg-clip-text text-transparent bg-purple-500">{title || 'ADMIN'}</span>
+          <p className="text-sm font-semibold text-gray-200">Quản lý {level}</p>
         </div>
       </div>
 
