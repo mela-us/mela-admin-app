@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../ui/card';
 import { Badge } from '../../ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
 
 function ContributorStats({ lectureContributions, exerciseContributions }) {
   return (
@@ -9,7 +9,7 @@ function ContributorStats({ lectureContributions, exerciseContributions }) {
         <CardDescription className="text-gray-700/80">Các số liệu đóng góp của contributor cho app</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">
-        {(lectureContributions || exerciseContributions) ? (
+        {lectureContributions || exerciseContributions ? (
           <div className="grid grid-cols-3 gap-y-4 gap-x-36">
             {lectureContributions && (
               <>

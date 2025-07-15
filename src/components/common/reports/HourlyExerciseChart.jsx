@@ -11,9 +11,7 @@ function HourlyExerciseChart({ data }) {
     <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-50/20">
       <CardHeader className="bg-indigo-200/50 border-b border-indigo-200">
         <CardTitle className="text-xl font-bold text-indigo-600">Phân bổ khung giờ làm bài tập</CardTitle>
-        <CardDescription className="text-gray-500">
-          Số lượt làm bài tập theo từng khung giờ trong tháng
-        </CardDescription>
+        <CardDescription className="text-gray-500">Số lượt làm bài tập theo từng khung giờ trong tháng</CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
         {formattedData.length > 0 ? (

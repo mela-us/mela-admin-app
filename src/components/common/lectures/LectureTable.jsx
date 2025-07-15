@@ -7,7 +7,6 @@ import {
   FileText,
   MoreVertical,
   Pencil,
-  Plus,
   Trash2,
   X,
   XCircle,
@@ -52,7 +51,7 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny, u
 
   const getCreatorName = (creator) => {
     if (!creator) return 'Admin';
-    return creator.fullName || creator.username || 'Không xác định';
+    return creator.fullname || creator.username || 'Không xác định';
   };
 
   const getStatusBadge = (status, reason) => {

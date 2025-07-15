@@ -31,7 +31,7 @@ function UserForm({ mode, user, roles, levels }) {
   const [imageFile, setImageFile] = useState(null);
   const [formData, setFormData] = useState({
     username: '',
-    fullName: '',
+    fullname: '',
     birthday: '',
     userRole: 'USER',
     levelId: '',
@@ -44,7 +44,7 @@ function UserForm({ mode, user, roles, levels }) {
     if (mode === 'edit' && user) {
       const formattedData = {
         username: user.username || '',
-        fullName: user.fullName || '',
+        fullname: user.fullname || '',
         birthday: user.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
         userRole: user.userRole?.toUpperCase() || 'USER',
         levelId: user.levelId || '',
@@ -69,7 +69,7 @@ function UserForm({ mode, user, roles, levels }) {
     } else {
       setFormData({
         username: '',
-        fullName: '',
+        fullname: '',
         birthday: '',
         userRole: 'USER',
         levelId: '',
@@ -172,7 +172,7 @@ function UserForm({ mode, user, roles, levels }) {
 
       const userData = {
         username: formData.username,
-        fullName: formData.fullName?.trim() || null,
+        fullname: formData.fullname?.trim() || null,
         birthday: formData.birthday ? formatDate(formData.birthday) : null,
         userRole: formData.userRole,
         levelId: formData.levelId,
@@ -206,7 +206,7 @@ function UserForm({ mode, user, roles, levels }) {
       mode === 'edit'
         ? JSON.stringify(formData) !== JSON.stringify(originalFormData) || imagePreview !== user?.imageUrl
         : formData.username ||
-          formData.fullName ||
+          formData.fullname ||
           formData.birthday ||
           formData.userRole !== 'USER' ||
           formData.levelId ||
@@ -268,7 +268,7 @@ function UserForm({ mode, user, roles, levels }) {
                   <AvatarImage src={imagePreview} alt="Avatar preview" className="object-cover" />
                 ) : (
                   <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xl font-semibold">
-                    {getUserInitials(formData.fullName)}
+                    {getUserInitials(formData.fullname)}
                   </AvatarFallback>
                 )}
               </Avatar>
@@ -333,13 +333,13 @@ function UserForm({ mode, user, roles, levels }) {
               />
             </div>
             <div className="col-span-3">
-              <Label htmlFor="fullName" className="text-sm font-semibold text-indigo-900">
+              <Label htmlFor="fullname" className="text-sm font-semibold text-indigo-900">
                 Họ và tên
               </Label>
               <Input
-                id="fullName"
-                name="fullName"
-                value={formData.fullName}
+                id="fullname"
+                name="fullname"
+                value={formData.fullname}
                 onChange={handleInputChange}
                 placeholder="Nhập họ và tên"
                 className="border-indigo-300 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-md px-4 py-2 text-indigo-900 placeholder-indigo-400/70 transition-all duration-200"

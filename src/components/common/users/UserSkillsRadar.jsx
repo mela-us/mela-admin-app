@@ -1,16 +1,16 @@
-import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../ui/card';
 import { PieChartIcon } from 'lucide-react';
+import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
 
 function UserSkillsRadar({ skills }) {
   const abbreviateTopicName = (name, index) => {
     if (!name) return `Topic ${index + 1}`;
     if (name.length <= 15) return name;
-    const words = name.split(' ').filter(word => word.length > 0);
+    const words = name.split(' ').filter((word) => word.length > 0);
     if (words.length === 1) {
       return `${name.substring(0, 10)}...`;
     }
-    const abbreviation = words.map(word => word.charAt(0).toUpperCase()).join('');
+    const abbreviation = words.map((word) => word.charAt(0).toUpperCase()).join('');
     if (abbreviation.length <= 3 && words[0].length > 3) {
       return abbreviation + words[0].substring(1, 4).toLowerCase();
     }
@@ -54,10 +54,7 @@ function UserSkillsRadar({ skills }) {
           <div>
             <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart
-                  data={processedData}
-                  margin={{ top: 20, right: 40, left: 40, bottom: 20 }}
-                >
+                <RadarChart data={processedData} margin={{ top: 20, right: 40, left: 40, bottom: 20 }}>
                   <PolarGrid stroke="#e5e7eb" />
                   <PolarAngleAxis
                     dataKey="topicName"
@@ -90,7 +87,6 @@ function UserSkillsRadar({ skills }) {
                 </RadarChart>
               </ResponsiveContainer>
             </div>
-
           </div>
         ) : (
           <div className="text-center py-8">
@@ -98,9 +94,7 @@ function UserSkillsRadar({ skills }) {
               <PieChartIcon className="w-16 h-16 mx-auto text-indigo-500" />
             </div>
             <p className="text-gray-500 text-lg">Chưa có dữ liệu đóng góp theo chủ đề</p>
-            <p className="text-gray-400 text-sm mt-2">
-              Dữ liệu sẽ hiển thị khi có bài giảng được xác minh
-            </p>
+            <p className="text-gray-400 text-sm mt-2">Dữ liệu sẽ hiển thị khi có bài giảng được xác minh</p>
           </div>
         )}
       </CardContent>

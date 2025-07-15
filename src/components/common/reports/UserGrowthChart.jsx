@@ -14,9 +14,7 @@ function UserGrowthChart({ data }) {
     <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-50/20">
       <CardHeader className="bg-indigo-200/50 border-b border-indigo-200">
         <CardTitle className="text-xl font-bold text-indigo-600">Tăng trưởng người dùng</CardTitle>
-        <CardDescription className="text-gray-500">
-          Số lượng người dùng mới đăng ký theo tháng
-        </CardDescription>
+        <CardDescription className="text-gray-500">Số lượng người dùng mới đăng ký theo tháng</CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
         {formattedData.length > 0 ? (

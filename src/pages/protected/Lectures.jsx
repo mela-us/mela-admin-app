@@ -45,10 +45,12 @@ export default function AdminLecturesPage() {
         }
       } catch (error) {
         const msg = error.response?.data?.message || error.message || 'Error when fetching data';
-        toast.error({
-          title: 'Fetching Data Error',
-          description: msg,
-        });
+        if (isMounted) {
+          toast.error({
+            title: 'Fetch Error',
+            description: msg,
+          });
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false);

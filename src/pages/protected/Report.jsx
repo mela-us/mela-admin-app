@@ -22,23 +22,22 @@ export default function ReportPage() {
     let isMounted = true;
     async function fetchData() {
       try {
-        const [
-          newUsersRes,
-          completedTestsRes,
-          completedExercisesRes,
-          exerciseAverageTimeRes,
-          hourlyExerciseRes,
-          userGrowthRes,
-        ] = await Promise.all([
-          ReportService.getNewUsersStat(),
-          ReportService.getCompletedTestsStat(),
-          ReportService.getCompletedExercisesStat(),
-          ReportService.getExerciseAverageTimeStat(),
-          ReportService.getHourlyExerciseData(),
-          ReportService.getUserGrowthData(),
-        ]);
-
         if (isMounted) {
+          const [
+            newUsersRes,
+            completedTestsRes,
+            completedExercisesRes,
+            exerciseAverageTimeRes,
+            hourlyExerciseRes,
+            userGrowthRes,
+          ] = await Promise.all([
+            ReportService.getNewUsersStat(),
+            ReportService.getCompletedTestsStat(),
+            ReportService.getCompletedExercisesStat(),
+            ReportService.getExerciseAverageTimeStat(),
+            ReportService.getHourlyExerciseData(),
+            ReportService.getUserGrowthData(),
+          ]);
           setNewUsersStat(newUsersRes.data || null);
           setCompletedTestsStat(completedTestsRes.data || null);
           setCompletedExercisesStat(completedExercisesRes.data || null);
@@ -47,12 +46,11 @@ export default function ReportPage() {
           setUserGrowthData(userGrowthRes.data || []);
         }
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        const msg = error.response?.data?.message || error.message || 'Error fetching report data';
         if (isMounted) {
-          toast({
-            title: 'Lỗi!',
-            description: error.response?.data?.message || 'Có lỗi xảy ra khi tải dữ liệu thống kê.',
-            variant: 'error',
+          toast.error({
+            title: 'Fetch Error',
+            description: msg,
           });
         }
       } finally {
@@ -65,7 +63,7 @@ export default function ReportPage() {
     return () => {
       isMounted = false;
     };
-  }, [toast]);
+  }, []);
 
   if (isLoading) {
     return (

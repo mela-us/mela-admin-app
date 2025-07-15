@@ -1,40 +1,50 @@
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../ui/card';
 import { FileText, PieChartIcon } from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
 
 function UserExerciseOverview({ exerciseStats }) {
   const statsData = exerciseStats || {};
 
   // Xử lý dữ liệu cho chart - chỉ lấy topic có dữ liệu
   const chartData = (statsData?.statsByTopics || [])
-    .filter(topic => topic.totalExercises > 0 || topic.totalAnswers > 0)
+    .filter((topic) => topic.totalExercises > 0 || topic.totalAnswers > 0)
     .map((topic) => ({
       name: topic.name.length > 12 ? `${topic.name.substring(0, 12)}...` : topic.name,
       fullName: topic.name,
-      averageScore: topic.averageScore ? Number(topic.averageScore.toFixed(2)) : 0.00,
+      averageScore: topic.averageScore ? Number(topic.averageScore.toFixed(2)) : 0.0,
       totalExercises: topic.totalExercises || 0,
       totalCorrectAnswers: topic.totalCorrectAnswers || 0,
       totalAnswers: topic.totalAnswers || 0,
-      timeSpent: topic.totalTimeSpent ? Number(topic.totalTimeSpent.toFixed(2)) : 0.00,
+      timeSpent: topic.totalTimeSpent ? Number(topic.totalTimeSpent.toFixed(2)) : 0.0,
       passedExercises: topic.totalPassedExercises || 0,
-      correctRate: topic.totalAnswers > 0 ? Number(((topic.totalCorrectAnswers / topic.totalAnswers) * 100).toFixed(2)) : 0,
+      correctRate:
+        topic.totalAnswers > 0 ? Number(((topic.totalCorrectAnswers / topic.totalAnswers) * 100).toFixed(2)) : 0,
     }));
 
   // Tính toán các chỉ số tổng quan
-  const totalStats = statsData ? {
-    averageScore: statsData.averageScore ? Number(statsData.averageScore.toFixed(2)) : 0.00,
-    totalExercises: statsData.totalExercises || 0,
-    totalPassedExercises: statsData.totalPassedExercises || 0,
-    totalTimeSpent: statsData.totalTimeSpent ? Number(statsData.totalTimeSpent.toFixed(2)) : 0.00,
-    averageTimeSpent: statsData.totalExercises > 0 ? Number((statsData.totalTimeSpent / statsData.totalExercises).toFixed(2)) : 0.00,
-    totalCorrectAnswers: statsData.totalCorrectAnswers || 0,
-    totalAnswers: statsData.totalAnswers || 0,
-    correctRate: statsData.totalAnswers > 0 ? Number(((statsData.totalCorrectAnswers / statsData.totalAnswers) * 100).toFixed(2)) : 0,
-    passRate: statsData.totalExercises > 0 ? Number(((statsData.totalPassedExercises / statsData.totalExercises) * 100).toFixed(2)) : 0,
-  } : null;
+  const totalStats = statsData
+    ? {
+      averageScore: statsData.averageScore ? Number(statsData.averageScore.toFixed(2)) : 0.0,
+      totalExercises: statsData.totalExercises || 0,
+      totalPassedExercises: statsData.totalPassedExercises || 0,
+      totalTimeSpent: statsData.totalTimeSpent ? Number(statsData.totalTimeSpent.toFixed(2)) : 0.0,
+      averageTimeSpent:
+          statsData.totalExercises > 0 ? Number((statsData.totalTimeSpent / statsData.totalExercises).toFixed(2)) : 0.0,
+      totalCorrectAnswers: statsData.totalCorrectAnswers || 0,
+      totalAnswers: statsData.totalAnswers || 0,
+      correctRate:
+          statsData.totalAnswers > 0
+            ? Number(((statsData.totalCorrectAnswers / statsData.totalAnswers) * 100).toFixed(2))
+            : 0,
+      passRate:
+          statsData.totalExercises > 0
+            ? Number(((statsData.totalPassedExercises / statsData.totalExercises) * 100).toFixed(2))
+            : 0,
+    }
+    : null;
 
   // Custom tooltip
-  const CustomTooltip = ({ active, payload, label }) => {
+  const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -89,14 +99,18 @@ function UserExerciseOverview({ exerciseStats }) {
 
               <div className="p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
                 <p className="text-sm font-semibold text-green-900 mb-1">Hoàn thành</p>
-                <div className="text-2xl font-bold text-green-700">{totalStats.totalPassedExercises.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-green-700">
+                  {totalStats.totalPassedExercises.toLocaleString()}
+                </div>
                 <p className="text-xs text-green-600">({totalStats.passRate}%)</p>
               </div>
 
               <div className="p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
                 <p className="text-sm font-semibold text-purple-900 mb-1">Tỷ lệ đúng</p>
                 <div className="text-2xl font-bold text-purple-700">{totalStats.correctRate}%</div>
-                <p className="text-xs text-purple-600">{totalStats.totalCorrectAnswers}/{totalStats.totalAnswers}</p>
+                <p className="text-xs text-purple-600">
+                  {totalStats.totalCorrectAnswers}/{totalStats.totalAnswers}
+                </p>
               </div>
 
               <div className="p-3 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg">
@@ -117,10 +131,7 @@ function UserExerciseOverview({ exerciseStats }) {
               <div>
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={chartData}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                    >
+                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis
                         dataKey="name"
@@ -144,22 +155,10 @@ function UserExerciseOverview({ exerciseStats }) {
                       <Legend
                         verticalAlign="top"
                         height={36}
-                        formatter={(value) => (
-                          <span className="text-sm text-gray-700">{value}</span>
-                        )}
+                        formatter={(value) => <span className="text-sm text-gray-700">{value}</span>}
                       />
-                      <Bar
-                        dataKey="totalExercises"
-                        fill="#6366f1"
-                        name="Tổng bài tập"
-                        radius={[4, 4, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="passedExercises"
-                        fill="#10b981"
-                        name="Bài hoàn thành"
-                        radius={[4, 4, 0, 0]}
-                      />
+                      <Bar dataKey="totalExercises" fill="#6366f1" name="Tổng bài tập" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="passedExercises" fill="#10b981" name="Bài hoàn thành" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -170,9 +169,7 @@ function UserExerciseOverview({ exerciseStats }) {
                   <FileText className="w-16 h-16 mx-auto text-indigo-500" />
                 </div>
                 <p className="text-gray-500 text-lg">Chưa có dữ liệu chi tiết theo chủ đề</p>
-                <p className="text-gray-400 text-sm mt-2">
-                  Hãy bắt đầu làm bài tập để xem thống kê chi tiết
-                </p>
+                <p className="text-gray-400 text-sm mt-2">Hãy bắt đầu làm bài tập để xem thống kê chi tiết</p>
               </div>
             )}
           </>
@@ -182,9 +179,7 @@ function UserExerciseOverview({ exerciseStats }) {
               <PieChartIcon className="w-16 h-16 mx-auto text-indigo-500" />
             </div>
             <p className="text-gray-500 text-lg">Chưa có dữ liệu thống kê bài tập</p>
-            <p className="text-gray-400 text-sm mt-2">
-              Dữ liệu sẽ hiển thị sau khi bạn hoàn thành bài tập đầu tiên
-            </p>
+            <p className="text-gray-400 text-sm mt-2">Dữ liệu sẽ hiển thị sau khi bạn hoàn thành bài tập đầu tiên</p>
           </div>
         )}
       </CardContent>

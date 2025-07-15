@@ -1,4 +1,4 @@
-import { Eye, MoreVertical, Pencil, Plus, Trash2, UserIcon } from 'lucide-react';
+import { Eye, MoreVertical, Pencil, Trash2, UserIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import {
@@ -177,7 +177,7 @@ export default function UserTable({ users, levels, onDelete, isLoading }) {
                               <AlertDialogHeader>
                                 <AlertDialogTitle className="text-xl">Xác nhận xóa</AlertDialogTitle>
                                 <AlertDialogDescription className="text-gray-600">
-                                  Bạn có chắc chắn muốn xóa người dùng "{user.fullname || user.username}"? Hành động này
+                                  Bạn có chắc chắn muốn xóa người dùng &quot;{user.fullname || user.username}&quot;? Hành động này
                                   không thể hoàn tác.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>

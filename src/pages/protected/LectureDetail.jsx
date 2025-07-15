@@ -22,25 +22,24 @@ export default function LectureDetail() {
 
   useEffect(() => {
     let isMounted = true;
-
     async function fetchData() {
       try {
-        const [lectureResData, levelsResData, topicsResData] = await Promise.all([
-          LectureService.getLectureById(id),
-          LevelService.getLevels(),
-          TopicService.getTopics(),
-        ]);
         if (isMounted) {
+          const [lectureResData, levelsResData, topicsResData] = await Promise.all([
+            LectureService.getLectureById(id),
+            LevelService.getLevels(),
+            TopicService.getTopics(),
+          ]);
           setLecture(lectureResData.data);
           setLevels([{ levelId: 'null', name: 'Chưa có' }, ...(levelsResData.data || [])]);
           setTopics([{ topicId: 'null', name: 'Chưa có' }, ...(topicsResData.data || [])]);
         }
       } catch (error) {
-        console.error('Error fetching lecture data:', error);
+        const msg = error.response?.data?.message || error.message || 'Error fetching data';
         if (isMounted) {
           toast.error({
-            title: 'Lỗi!',
-            description: 'Không thể tải dữ liệu bài học. Vui lòng thử lại.',
+            title: 'Fetch Error',
+            description: msg,
           });
         }
       } finally {

@@ -6,20 +6,14 @@ import {
   ArrowUpZA,
   BadgeCheck,
   BadgeX,
-  CheckCircle,
   Clock,
-  Edit3,
-  Eye,
   Info,
   Layers,
-  MoreVertical,
   Plus,
   Search,
-  Sparkles,
   SquarePen,
   Trash2,
   X,
-  XCircle,
 } from 'lucide-react';
 import { useToast } from '../../../contexts/ToastContext';
 import { LevelService } from '../../../services/LevelService';
@@ -44,7 +38,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../../ui/dropdown-menu';
 import { Input } from '../../ui/input';

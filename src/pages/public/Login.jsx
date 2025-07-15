@@ -107,7 +107,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center background-image">
-      <Card className="w-full max-w-md rounded-2xl px-6 py-4 text-white bg-[#3a005caa] backdrop-blur-xl border border-white/20 ring-1 ring-fuchsia-500/20 shadow-2xl shadow-purple-900/50">
+      <Card className="my-8 w-full max-w-md rounded-2xl px-6 py-4 text-white bg-[#3a005caa] backdrop-blur-xl border border-white/20 ring-1 ring-fuchsia-500/20 shadow-2xl shadow-purple-900/50">
         <CardHeader className="space-y-1 pb-4 border-b border-white/20">
           <CardTitle className="text-3xl font-bold text-white text-center">MELA</CardTitle>
           <CardDescription className="text-center text-gray-200">

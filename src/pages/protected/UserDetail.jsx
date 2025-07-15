@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, BarChart3 } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import ContributorStats from '../../components/common/users/ContributorStats';
+import ContributorTopicChart from '../../components/common/users/ContributorTopicChart';
+import UserExerciseOverview from '../../components/common/users/UserExerciseOverview';
+import UserProfileCard from '../../components/common/users/UserProfileCard';
+import UserSkillsRadar from '../../components/common/users/UserSkillsRadar';
 import Loader from '../../components/Loader';
 import { Button } from '../../components/ui/button';
 import { useToast } from '../../contexts/ToastContext';
@@ -8,11 +13,6 @@ import DashboardLayout from '../../layouts/DashboardLayout';
 import { LevelService } from '../../services/LevelService';
 import { UserReportService } from '../../services/UserReportService';
 import { UserService } from '../../services/UserService';
-import UserProfileCard from '../../components/common/users/UserProfileCard';
-import UserExerciseOverview from '../../components/common/users/UserExerciseOverview';
-import UserSkillsRadar from '../../components/common/users/UserSkillsRadar';
-import ContributorStats from '../../components/common/users/ContributorStats';
-import ContributorTopicChart from '../../components/common/users/ContributorTopicChart';
 
 export default function UserDetailPage() {
   const { id } = useParams();
@@ -33,10 +33,7 @@ export default function UserDetailPage() {
     async function fetchData() {
       try {
         if (isMounted) {
-          const [userRes, levelsRes] = await Promise.all([
-            UserService.getUserInfo(id),
-            LevelService.getLevels(),
-          ]);
+          const [userRes, levelsRes] = await Promise.all([UserService.getUserInfo(id), LevelService.getLevels()]);
           setUser(userRes.data || null);
           setLevels([...(levelsRes.data || [])]);
 
@@ -131,9 +128,7 @@ export default function UserDetailPage() {
               lectureContributions={lectureContributions}
               exerciseContributions={exerciseContributions}
             />
-            <ContributorTopicChart
-              lectureContributions={lectureContributions}
-            />
+            <ContributorTopicChart lectureContributions={lectureContributions} />
           </>
         )}
       </div>

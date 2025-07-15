@@ -46,7 +46,12 @@ function TopicDialog({ open, onOpenChange, onSave, title, confirmText, initialDa
   }, [formData.name]);
 
   useEffect(() => {
-    const isImageValid = !!formData.previewUrl || !formData.selectedImage;
+    let isImageValid = false;
+    if (initialData) {
+      isImageValid = !!formData.previewUrl || !formData.selectedImage;
+    } else {
+      isImageValid = formData.previewUrl.trim() > 0 || formData.selectedImage !== null;
+    }
     setIsValidImage(isImageValid);
   }, [formData.previewUrl, formData.selectedImage]);
 
@@ -103,6 +108,7 @@ function TopicDialog({ open, onOpenChange, onSave, title, confirmText, initialDa
 
   const removeImage = () => {
     if (formData.previewUrl) URL.revokeObjectURL(formData.previewUrl);
+    formData.selectedImage = null;
     setFormData((prev) => ({
       ...prev,
       selectedImage: null,

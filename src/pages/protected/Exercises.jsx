@@ -43,10 +43,12 @@ export default function ExercisesPage() {
         setLectures((prevLectures) => prevLectures.sort((a, b) => a.name?.localeCompare(b.name)));
       } catch (error) {
         const msg = error.response?.data?.message || error.message || 'Error when fetching data';
-        toast.error({
-          title: 'Fetching Data Error',
-          description: msg,
-        });
+        if (isMounted) {
+          toast.error({
+            title: 'Fetching Data Error',
+            description: msg,
+          });
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -57,7 +59,7 @@ export default function ExercisesPage() {
     return () => {
       isMounted = false;
     };
-  }, [state.user.userRole, toast]);
+  }, []);
 
   if (isLoading) {
     return (

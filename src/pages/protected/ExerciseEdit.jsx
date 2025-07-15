@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import ExerciseForm from '../../components/common/exercises/ExerciseForm';
 import Loader from '../../components/Loader';
 import { useToast } from '../../contexts/ToastContext';

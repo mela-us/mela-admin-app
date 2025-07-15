@@ -143,7 +143,7 @@ export default function ExerciseList({ exercises, setExercises, lectures, contri
 
   const getCreatorName = (creator, maxLength = 100) => {
     if (!creator) return 'Admin';
-    return truncateText(creator.fullName || creator.username || 'Contributor', maxLength);
+    return truncateText(creator.fullname || creator.username || 'Contributor', maxLength);
   };
 
   const getStatusCount = (status) => {
@@ -290,7 +290,7 @@ export default function ExerciseList({ exercises, setExercises, lectures, contri
                       onClick={() => setSelectedCreatorFilter(contributor.userId)}
                       className="cursor-pointer"
                     >
-                      <span>{contributor.fullName || contributor.username}</span>
+                      <span>{contributor.fullname || contributor.username}</span>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuGroup>

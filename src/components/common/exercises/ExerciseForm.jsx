@@ -259,14 +259,14 @@ export default function ExerciseForm({ mode, lectures, lectureParam, initialData
 
       if (mode === 'add') {
         const resData = await ExerciseService.createExercise(exerciseData);
-        const { message } = resData.data;
+        const { message } = resData;
         toast.success({
           title: 'Add Exercise Success',
           description: message,
         });
       } else {
         const resData = await ExerciseService.updateExercise(formData.exerciseId, exerciseData);
-        const { message } = resData.data;
+        const { message } = resData;
         toast.success({
           title: 'Update Exercise Success',
           description: message,

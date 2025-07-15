@@ -62,7 +62,7 @@ export default function AdminUsersPage() {
     return () => {
       isMounted = false;
     };
-  }, [toast]);
+  }, []);
 
   if (isLoading) {
     return (

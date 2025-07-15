@@ -1,6 +1,6 @@
-import { User, Calendar, Award, Flame, KeyRound, CreditCardIcon } from 'lucide-react';
+import { Award, Calendar, CreditCardIcon, Flame, KeyRound, User } from 'lucide-react';
 import { Badge } from '../../ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
 
 function UserProfileCard({ user, levels, tokens, streak }) {
   const getLevelName = (levelId) => {
