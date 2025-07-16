@@ -20,7 +20,7 @@ function StatCard({
       className={cn('overflow-hidden border-t-4 transition-all duration-300 hover:shadow-lg', className)}
       style={{ borderTopColor: `var(--${color})` }}
     >
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pb-1">
         <CardTitle>{isLoading ? <div className="h-6 w-24 bg-gray-200 rounded animate-pulse" /> : title}</CardTitle>
         {isLoading ? (
           <div className="h-9 w-9 bg-gray-200 rounded-full animate-pulse" />
@@ -49,8 +49,7 @@ function StatCard({
             >
               {isPositive ? <ArrowUpIcon className="h-4 w-4" /> : <ArrowDownIcon className="h-4 w-4" />}
               <span>
-                {isPositive ? '+' : ''}
-                {comparisonValue.toFixed(1)}%
+                {comparisonValue.toFixed(1) * (isPositive ? 1 : -1)}%
               </span>
               <span className="text-gray-500 font-normal">{comparisonLabel}</span>
             </div>

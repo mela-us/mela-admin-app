@@ -1,13 +1,14 @@
 import { CheckCircle, Clock, FileText, Users } from 'lucide-react';
 import { StatCard } from '../../ui/stat-card';
+import { getCurrentMonthYear } from '../../../lib/utils';
 
 function OverviewCards({ newUsersStat, completedTestsStat, completedExercisesStat, exerciseAverageTimeStat }) {
   return (
     <div className="grid grid-cols-4 gap-6">
       <StatCard
-        title="Người dùng mới"
-        value={newUsersStat?.current?.toLocaleString() || '0'}
-        description="Người dùng đăng ký mới trong tháng"
+        title="Người Dùng Mới"
+        value={`${newUsersStat?.current?.toLocaleString() || '0'} người` }
+        description={`Số người dùng mới đăng ký trong ${getCurrentMonthYear()}`}
         icon={Users}
         color="blue-500"
         comparisonValue={newUsersStat?.percentChange || 0}
@@ -16,9 +17,9 @@ function OverviewCards({ newUsersStat, completedTestsStat, completedExercisesSta
         isLoading={!newUsersStat}
       />
       <StatCard
-        title="Test hoàn thành"
-        value={completedTestsStat?.current?.toLocaleString() || '0'}
-        description="Số lượt làm bài kiểm tra trong tháng"
+        title="Bài Kiểm Tra"
+        value={`${completedTestsStat?.current?.toLocaleString() || '0'} lượt`}
+        description={`Số lượt làm bài kiểm tra trong ${getCurrentMonthYear()}`}
         icon={CheckCircle}
         color="green-500"
         comparisonValue={completedTestsStat?.percentChange || 0}
@@ -27,9 +28,9 @@ function OverviewCards({ newUsersStat, completedTestsStat, completedExercisesSta
         isLoading={!completedTestsStat}
       />
       <StatCard
-        title="Bài tập hoàn thành"
-        value={completedExercisesStat?.current?.toLocaleString() || '0'}
-        description="Số lượt làm bài tập trong tháng"
+        title="Bài Luyện Tập"
+        value={`${completedExercisesStat?.current?.toLocaleString() || '0'} lượt`}
+        description={`Số lượt làm bài luyện tập trong ${getCurrentMonthYear()}`}
         icon={FileText}
         color="purple-500"
         comparisonValue={completedExercisesStat?.percentChange || 0}
@@ -38,9 +39,9 @@ function OverviewCards({ newUsersStat, completedTestsStat, completedExercisesSta
         isLoading={!completedExercisesStat}
       />
       <StatCard
-        title="Thời gian làm bài"
+        title="Thời Gian Luyện Tập"
         value={exerciseAverageTimeStat?.current ? `${exerciseAverageTimeStat.current} phút` : '0 phút'}
-        description="Thời gian làm mỗi bài tập trong tháng"
+        description= {`Thời gian trung bình cho 1 bài luyện tập trong ${getCurrentMonthYear()}`}
         icon={Clock}
         color="orange-500"
         comparisonValue={exerciseAverageTimeStat?.percentChange || 0}

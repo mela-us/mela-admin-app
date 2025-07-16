@@ -77,52 +77,52 @@ function UserExerciseOverview({ exerciseStats }) {
   return (
     <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-50/20">
       <CardHeader className="bg-indigo-200/50 border-b border-indigo-200">
-        <CardTitle className="text-xl font-bold text-gray-700/90">Thống kê bài tập</CardTitle>
-        <CardDescription className="text-gray-700/80">Thông số làm bài tập của người học</CardDescription>
+        <CardTitle className="text-xl font-bold text-gray-700/90">Thống kê bài luyện tập</CardTitle>
+        <CardDescription className="text-gray-700/80">Thông số làm bài luyện tập của người học</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">
         {totalStats ? (
           <>
             {/* Thống kê tổng quan */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-                <p className="text-sm font-semibold text-blue-900 mb-1">Điểm trung bình</p>
+                <p className="text-sm font-semibold text-blue-900 mb-1">Điểm trung bình tất cả bài tập</p>
                 <div className="text-2xl font-bold text-blue-700">{totalStats.averageScore}</div>
                 <p className="text-xs text-blue-600">/ 100 điểm</p>
               </div>
 
               <div className="p-3 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg">
-                <p className="text-sm font-semibold text-indigo-900 mb-1">Tổng bài tập</p>
+                <p className="text-sm font-semibold text-indigo-900 mb-1">Tổng bài luyện tập đã làm</p>
                 <div className="text-2xl font-bold text-indigo-700">{totalStats.totalExercises.toLocaleString()}</div>
-                <p className="text-xs text-indigo-600">bài tập</p>
+                <p className="text-xs text-indigo-600">bài luyện tập</p>
               </div>
 
               <div className="p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
-                <p className="text-sm font-semibold text-green-900 mb-1">Hoàn thành</p>
+                <p className="text-sm font-semibold text-green-900 mb-1">Tổng bài đã đạt</p>
                 <div className="text-2xl font-bold text-green-700">
                   {totalStats.totalPassedExercises.toLocaleString()}
                 </div>
-                <p className="text-xs text-green-600">({totalStats.passRate}%)</p>
+                <p className="text-xs text-green-600">{totalStats.passRate}% tỉ lệ bài hơn 80 điểm</p>
               </div>
 
               <div className="p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
-                <p className="text-sm font-semibold text-purple-900 mb-1">Tỷ lệ đúng</p>
+                <p className="text-sm font-semibold text-purple-900 mb-1">Tỷ lệ câu trả lời đúng</p>
                 <div className="text-2xl font-bold text-purple-700">{totalStats.correctRate}%</div>
                 <p className="text-xs text-purple-600">
-                  {totalStats.totalCorrectAnswers}/{totalStats.totalAnswers}
+                  đúng {totalStats.totalCorrectAnswers} trong {totalStats.totalAnswers} câu hỏi đã làm
                 </p>
               </div>
 
               <div className="p-3 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg">
                 <p className="text-sm font-semibold text-amber-900 mb-1">Tổng thời gian</p>
-                <div className="text-2xl font-bold text-amber-700">{totalStats.totalTimeSpent}</div>
-                <p className="text-xs text-amber-600">phút</p>
+                <div className="text-2xl font-bold text-amber-700">{totalStats.totalTimeSpent} phút</div>
+                <p className="text-xs text-amber-600">thời gian dành ra cho các bài luyện tập</p>
               </div>
 
               <div className="p-3 bg-gradient-to-r from-pink-50 to-pink-100 rounded-lg">
-                <p className="text-sm font-semibold text-pink-900 mb-1">TB mỗi bài</p>
-                <div className="text-2xl font-bold text-pink-700">{totalStats.averageTimeSpent}</div>
-                <p className="text-xs text-pink-600">phút/bài</p>
+                <p className="text-sm font-semibold text-pink-900 mb-1">Thời gian trung bình mỗi bài</p>
+                <div className="text-2xl font-bold text-pink-700">{totalStats.averageTimeSpent} phút</div>
+                <p className="text-xs text-pink-600">thời gian trung bình mỗi bài luyện tập</p>
               </div>
             </div>
 
@@ -131,7 +131,7 @@ function UserExerciseOverview({ exerciseStats }) {
               <div>
                 <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis
                         dataKey="name"
@@ -157,8 +157,8 @@ function UserExerciseOverview({ exerciseStats }) {
                         height={36}
                         formatter={(value) => <span className="text-sm text-gray-700">{value}</span>}
                       />
-                      <Bar dataKey="totalExercises" fill="#6366f1" name="Tổng bài tập" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="passedExercises" fill="#10b981" name="Bài hoàn thành" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="totalExercises" fill="#6366f1" name="Số bài luyện tập" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="passedExercises" fill="#10b981" name="Số bài đã đạt" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

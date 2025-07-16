@@ -17,7 +17,6 @@ function UserSkillsRadar({ skills }) {
     return abbreviation;
   };
 
-  // Xử lý dữ liệu
   const processedData = (skills || []).map((skill, index) => ({
     topicName: abbreviateTopicName(skill.topicName, index),
     fullName: skill.topicName || `Topic ${index + 1}`,
@@ -47,7 +46,7 @@ function UserSkillsRadar({ skills }) {
     <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-50/20">
       <CardHeader className="bg-indigo-200/50 border-b border-indigo-200">
         <CardTitle className="text-xl font-bold text-gray-700/90">Kỹ năng theo chủ đề</CardTitle>
-        <CardDescription className="text-gray-700/80">Thông tin các kỹ năng của người học</CardDescription>
+        <CardDescription className="text-gray-700/80">Thông tin các kỹ năng của người học tính theo từng chủ đề</CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
         {hasData ? (

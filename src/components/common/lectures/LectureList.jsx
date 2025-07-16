@@ -128,9 +128,9 @@ function LectureList({ lectures, setLectures, levels, topics, contributors }) {
       const statusMatch = selectedStatusFilter === 'all' || lecture.status === selectedStatusFilter;
       const creatorMatch =
         userRole?.toUpperCase() === 'ADMIN'
-          ? selectedCreatorFilter === 'all' ||
-            (selectedCreatorFilter === 'admin' && !lecture.createdBy) ||
-            (lecture.createdBy && lecture.createdBy === selectedCreatorFilter)
+          ? selectedCreatorFilter === 'all'
+            || (selectedCreatorFilter === 'admin' && !lecture.createdBy)
+            || (lecture?.createdBy === selectedCreatorFilter || lecture.creator?.userRole?.toLowerCase() === selectedCreatorFilter)
           : true;
       const searchMatch = searchQuery === '' || lecture.name.toLowerCase().includes(searchQuery?.toLowerCase());
       return levelMatch && topicMatch && statusMatch && creatorMatch && searchMatch;

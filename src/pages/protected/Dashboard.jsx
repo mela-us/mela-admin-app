@@ -9,7 +9,6 @@ import {
   Edit3,
   Eye,
   FileText,
-  Settings,
   Shield,
   Star,
   Target,
@@ -50,12 +49,12 @@ export default function About() {
       <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-50/20">
         <CardHeader className="bg-indigo-200/50 border-b border-indigo-200">
           <CardTitle className="text-xl font-bold text-gray-700/90">Quản lý nội dung học tập</CardTitle>
-          <CardDescription className="text-gray-700/80">Bài giảng và bài tập</CardDescription>
+          <CardDescription className="text-gray-700/80">Cấp độ, chủ đề, bài học và bài tập</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700">Xem tất cả nội dung</span>
+            <span className="text-sm text-gray-700">Xem tất cả nội dung học tập ở tất cả trạng thái</span>
           </div>
           <div className="flex items-center gap-2">
             <Edit3 className="h-4 w-4 text-blue-500" />
@@ -67,35 +66,11 @@ export default function About() {
           </div>
           <div className="flex items-center gap-2">
             <BadgeCheck className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700">Phê duyệt nội dung PENDING và DENIED</span>
+            <span className="text-sm text-gray-700">Phê duyệt cho các nội dung <code className="text-orange-600">PENDING</code> và <code className="text-red-600">DENIED</code></span>
           </div>
           <div className="flex items-center gap-2">
             <BadgeX className="h-4 w-4 text-orange-500" />
-            <span className="text-sm text-gray-700">Từ chối kèm lý do</span>
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-50/20">
-        <CardHeader className="bg-indigo-200/50 border-b border-indigo-200">
-          <CardTitle className="text-xl font-bold text-gray-700/90">Quản lý cấp độ và chủ đề</CardTitle>
-          <CardDescription className="text-gray-700/80">Cấp độ và chủ đề học tập</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-700">Quản lý tất cả cấp độ</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-indigo-500" />
-            <span className="text-sm text-gray-700">Quản lý tất cả chủ đề</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700">Không giới hạn cấp độ quản lý</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Edit3 className="h-4 w-4 text-blue-500" />
-            <span className="text-sm text-gray-700">Thêm, xóa, sử, phê duyệt</span>
+            <span className="text-sm text-gray-700">Từ chối đính kèm lý do và yêu cầu chỉnh sửa</span>
           </div>
         </CardContent>
       </Card>
@@ -107,7 +82,7 @@ export default function About() {
         <CardContent className="space-y-4 pt-6">
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700">Xem tất cả người dùng</span>
+            <span className="text-sm text-gray-700">Xem tất cả người dùng ở mọi cấp độ</span>
           </div>
           <div className="flex items-center gap-2">
             <Edit3 className="h-4 w-4 text-blue-500" />
@@ -115,7 +90,7 @@ export default function About() {
           </div>
           <div className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-orange-500" />
-            <span className="text-sm text-gray-700">Xem thống kê hoạt động</span>
+            <span className="text-sm text-gray-700">Xem thống kê hoạt động từng người dùng</span>
           </div>
         </CardContent>
       </Card>
@@ -131,7 +106,7 @@ export default function About() {
           </div>
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-blue-500" />
-            <span className="text-sm text-gray-700">Thống kê bài giảng và bài tập</span>
+            <span className="text-sm text-gray-700">Thống kê bài học và bài tập</span>
           </div>
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-pink-500" />
@@ -144,30 +119,30 @@ export default function About() {
           <CardTitle className="text-xl font-bold text-gray-700/90 flex items-center gap-2">
             Quyền hạn theo trạng thái nội dung
           </CardTitle>
-          <CardDescription className="text-gray-700/80">Quyền hạn với bài giảng và bài tập</CardDescription>
+          <CardDescription className="text-gray-700/80">Quyền hạn với bài học và bài tập</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-white rounded-lg border border-indigo-200">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="h-4 w-4 text-yellow-500" />
-                <Badge className="bg-yellow-50 text-yellow-700 hover:bg-yellow-100">PENDING</Badge>
+                <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">PENDING</Badge>
               </div>
-              <p className="text-sm text-gray-600">Toàn quyền</p>
+              <p className="text-sm text-gray-600">Xem, xóa, sửa, từ chối hoặc phê duyệt</p>
             </div>
             <div className="p-4 bg-white rounded-lg border border-indigo-200">
               <div className="flex items-center gap-2 mb-2">
                 <XCircle className="h-4 w-4 text-red-500" />
-                <Badge className="bg-red-50 text-red-700 hover:bg-red-100">DENIED</Badge>
+                <Badge className="bg-red-100 text-red-700 hover:bg-red-100">DENIED</Badge>
               </div>
-              <p className="text-sm text-gray-600">Toàn quyền</p>
+              <p className="text-sm text-gray-600">Xem, xóa, sửa, từ chối hoặc phê duyệt</p>
             </div>
             <div className="p-4 bg-white rounded-lg border border-indigo-200">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <Badge className="bg-green-50 text-green-700 hover:bg-green-100">VERIFIED</Badge>
+                <Badge className="bg-green-100 text-green-700 hover:bg-green-100">VERIFIED</Badge>
               </div>
-              <p className="text-sm text-gray-600">Toàn quyền</p>
+              <p className="text-sm text-gray-600">Xem, xóa, sửa</p>
             </div>
           </div>
         </CardContent>
@@ -180,7 +155,7 @@ export default function About() {
       <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-50/20">
         <CardHeader className="bg-indigo-200/50 border-b border-indigo-200">
           <CardTitle className="text-xl font-bold text-gray-700/90">Quản lý nội dung học tập</CardTitle>
-          <CardDescription className="text-gray-700/80">Bài giảng và bài tập</CardDescription>
+          <CardDescription className="text-gray-700/80">bài học và bài tập</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="flex items-center gap-2">
@@ -194,12 +169,12 @@ export default function About() {
           <div className="flex items-center gap-2">
             <Trash2 className="h-4 w-4 text-red-500" />
             <span className="text-sm text-gray-700">
-              Quản lý nội dung <code>PENDING</code> và <code>DENIED</code> của bản thân
+              Xóa lý nội dung <code className="text-orange-600">PENDING</code> và <code className="text-red-600">DENIED</code> của bản thân
             </span>
           </div>
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-orange-500" />
-            <span className="text-sm text-gray-700">Không có quyền phê duyệt hay từ chối</span>
+            <span className="text-sm text-gray-700">Chờ Admin phê duyệt nội dung đã tạo</span>
           </div>
         </CardContent>
       </Card>
@@ -211,19 +186,19 @@ export default function About() {
         <CardContent className="space-y-4 pt-6">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-orange-500" />
-            <span className="text-sm text-gray-700">Không quản lý cấp độ</span>
+            <span className="text-sm text-gray-700">Không quản lý cấp độ: Thêm, xóa, sửa</span>
           </div>
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-orange-500" />
-            <span className="text-sm text-gray-700">Không quản lý chủ đề</span>
+            <span className="text-sm text-gray-700">Không quản lý chủ đề: Thêm, xóa, sửa</span>
           </div>
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-indigo-500" />
-            <span className="text-sm text-gray-700">Giới hạn một cấp độ duy nhất</span>
+            <span className="text-sm text-gray-700">Thêm nội dung thuộc một cấp độ duy nhất</span>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700">Không giới hạn chủ đề</span>
+            <span className="text-sm text-gray-700">Thêm nội dung thuộc nhiều chủ đề không giới hạn có trên hệ thống</span>
           </div>
         </CardContent>
       </Card>
@@ -235,11 +210,11 @@ export default function About() {
         <CardContent className="space-y-4 pt-6">
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700">Xem danh sách người dùng</span>
+            <span className="text-sm text-gray-700">Xem danh sách người dùng trong phạm vi cấp độ bản thân</span>
           </div>
           <div className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-orange-500" />
-            <span className="text-sm text-gray-700">Xem thống kê hoạt động</span>
+            <span className="text-sm text-gray-700">Xem thống kê hoạt động từng người dùng  </span>
           </div>
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-orange-500" />
@@ -255,11 +230,7 @@ export default function About() {
         <CardContent className="space-y-4 pt-6">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-orange-500" />
-            <span className="text-sm text-gray-700">Không có quyền xem báo cáo</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
-            <span className="text-sm text-gray-700">Không có quyền thống kê</span>
+            <span className="text-sm text-gray-700">Không có quyền xem thống kê của toàn hệ thống</span>
           </div>
         </CardContent>
       </Card>
@@ -268,28 +239,28 @@ export default function About() {
           <CardTitle className="text-xl font-bold text-gray-700/90 flex items-center gap-2">
             Quyền hạn theo trạng thái nội dung
           </CardTitle>
-          <CardDescription className="text-gray-700/80">Quyền hạn với bài giảng và bài tập</CardDescription>
+          <CardDescription className="text-gray-700/80">Quyền hạn với bài học và bài tập</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-white rounded-lg border border-indigo-200">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="h-4 w-4 text-yellow-500" />
-                <Badge className="bg-yellow-50 text-yellow-700 hover:bg-yellow-100">PENDING</Badge>
+                <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">PENDING</Badge>
               </div>
               <p className="text-sm text-gray-600">Xem, xóa và sửa nội dung của mình</p>
             </div>
             <div className="p-4 bg-white rounded-lg border border-indigo-200">
               <div className="flex items-center gap-2 mb-2">
                 <XCircle className="h-4 w-4 text-red-500" />
-                <Badge className="bg-red-50 text-red-700 hover:bg-red-100">DENIED</Badge>
+                <Badge className="bg-red-100 text-red-700 hover:bg-red-100">DENIED</Badge>
               </div>
               <p className="text-sm text-gray-600">Xem, xóa và sửa nội dung của mình</p>
             </div>
             <div className="p-4 bg-white rounded-lg border border-indigo-200">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <Badge className="bg-green-50 text-green-700 hover:bg-green-100">VERIFIED</Badge>
+                <Badge className="bg-green-100 text-green-700 hover:bg-green-100">VERIFIED</Badge>
               </div>
               <p className="text-sm text-gray-600">Chỉ xem, không có quyền sửa và xóa</p>
             </div>
@@ -307,8 +278,8 @@ export default function About() {
           <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
               <h1 className="text-3xl font-bold mb-2 tracking-tight">MELA WEB</h1>
-              <p className="text-blue-50 max-w-2xl">
-                Quản lý và phát triển nội dung học tập cho ứng dụng MELA. Tạo, chỉnh sửa và quản lý bài giảng, bài tập,
+              <p className="text-blue-100 max-w-2xl">
+                Quản lý và phát triển nội dung học tập cho ứng dụng MELA. Tạo, chỉnh sửa và quản lý bài học, bài tập,
                 người dùng và thống kê một cách dễ dàng.
               </p>
             </div>
@@ -326,7 +297,7 @@ export default function About() {
             <CardContent className="pt-6">
               <p className="text-gray-700 leading-relaxed">
                 MELA WEB là hệ thống quản lý nội dung toán học cho ứng dụng MELA, hỗ trợ quản lý người dùng, cấp độ, chủ
-                đề, bài giảng, và bài tập. Hệ thống phân quyền rõ ràng với hai vai trò:
+                đề, bài học, và bài tập. Hệ thống phân quyền rõ ràng với hai vai trò:
                 <strong className="font-bold"> ADMIN</strong> có toàn quyền quản lý và
                 <strong className="font-bold"> CONTRIBUTOR</strong> tập trung vào soạn thảo nội dung trong phạm vi cấp
                 độ được phân công.

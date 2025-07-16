@@ -10,8 +10,8 @@ function HourlyExerciseChart({ data }) {
   return (
     <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-50/20">
       <CardHeader className="bg-indigo-200/50 border-b border-indigo-200">
-        <CardTitle className="text-xl font-bold text-indigo-600">Phân bổ khung giờ làm bài tập</CardTitle>
-        <CardDescription className="text-gray-500">Số lượt làm bài tập theo từng khung giờ trong tháng</CardDescription>
+        <CardTitle className="text-xl font-bold text-gray-700/90">Phân bổ khung giờ làm bài tập</CardTitle>
+        <CardDescription className="text-gray-500">Số lượt làm bài tập theo từng khung giờ trong tháng của tất cả người dùng</CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
         {formattedData.length > 0 ? (
@@ -28,7 +28,7 @@ function HourlyExerciseChart({ data }) {
                 <XAxis dataKey="displayHour" tick={{ dy: 10, fill: '#4b5563', fontSize: 12 }} interval={2} />
                 <YAxis tick={{ dx: -5, fill: '#4b5563', fontSize: 12 }} />
                 <Tooltip
-                  formatter={(value) => [`${value.toLocaleString()} lượt`, 'Số lượt làm bài']}
+                  formatter={(value) => [`${value.toLocaleString()} lượt`, 'Tổng lượt làm bài']}
                   labelFormatter={(label) => {
                     const hour = parseInt(label, 10);
                     const start = String(hour).padStart(2, '0');

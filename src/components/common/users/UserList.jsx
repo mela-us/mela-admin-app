@@ -18,7 +18,7 @@ import { Input } from '../../ui/input';
 
 export default function UserList({ users, setUsers, roles, levels }) {
   const { state } = useAuth();
-  const { userRole, levelId: userLevelId } = state.user || {};
+  const { userRole, levelId: userLevelId } = state.user;
   const [sortField, setSortField] = useState('username');
   const [sortOrder, setSortOrder] = useState('asc');
   const [selectedRoleFilter, setSelectedRoleFilter] = useState(
@@ -80,8 +80,12 @@ export default function UserList({ users, setUsers, roles, levels }) {
     })
     .sort((a, b) => {
       if (sortField === 'username') {
-        const aValue = a.username?.toLowerCase() || '';
-        const bValue = b.username?.toLowerCase() || '';
+        const aValue = (a.username || '').toLowerCase();
+        const bValue = (b.username || '').toLowerCase();
+        return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+      } else if (sortField === 'fullname') {
+        const aValue = (a.fullname || '').toLowerCase();
+        const bValue = (b.fullname || '').toLowerCase();
         return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
       } else if (sortField === 'createdAt') {
         const aValue = new Date(a.createdAt || 0).getTime();
@@ -219,13 +223,7 @@ export default function UserList({ users, setUsers, roles, levels }) {
                 size="sm"
                 className="h-10 px-4 bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
               >
-                {sortField === 'username' ? (
-                  sortOrder === 'asc' ? (
-                    <ArrowDownAZ className="mr-2 h-4 w-4 text-indigo-500" />
-                  ) : (
-                    <ArrowUpZA className="mr-2 h-4 w-4 text-indigo-500" />
-                  )
-                ) : sortOrder === 'asc' ? (
+                {sortOrder === 'asc' ? (
                   <ArrowDownAZ className="mr-2 h-4 w-4 text-indigo-500" />
                 ) : (
                   <ArrowUpZA className="mr-2 h-4 w-4 text-indigo-500" />
@@ -237,11 +235,11 @@ export default function UserList({ users, setUsers, roles, levels }) {
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={() => handleSort('username', 'asc')} className="cursor-pointer">
                   <ArrowDownAZ className="mr-2 h-4 w-4 text-indigo-500" />
-                  <span>Tên A-Z</span>
+                  <span>Username A-Z</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleSort('username', 'desc')} className="cursor-pointer">
                   <ArrowUpZA className="mr-2 h-4 w-4 text-indigo-500" />
-                  <span>Tên Z-A</span>
+                  <span>Username Z-A</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleSort('createdAt', 'asc')} className="cursor-pointer">
                   <ArrowDownAZ className="mr-2 h-4 w-4 text-indigo-500" />
@@ -250,6 +248,14 @@ export default function UserList({ users, setUsers, roles, levels }) {
                 <DropdownMenuItem onClick={() => handleSort('createdAt', 'desc')} className="cursor-pointer">
                   <ArrowUpZA className="mr-2 h-4 w-4 text-indigo-500" />
                   <span>Mới nhất</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSort('fullname', 'asc')} className="cursor-pointer">
+                  <ArrowDownAZ className="mr-2 h-4 w-4 text-indigo-500" />
+                  <span>Họ tên A-Z</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSort('fullname', 'desc')} className="cursor-pointer">
+                  <ArrowUpZA className="mr-2 h-4 w-4 text-indigo-500" />
+                  <span>Họ tên Z-A</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
