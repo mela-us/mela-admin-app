@@ -49,7 +49,7 @@ export default function ReportPage() {
         const msg = error.response?.data?.message || error.message || 'Error fetching report data';
         if (isMounted) {
           toast.error({
-            title: 'Fetch Error',
+            title: 'Report Error',
             description: msg,
           });
         }

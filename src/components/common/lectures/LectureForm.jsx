@@ -21,8 +21,12 @@ import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Textarea } from '../../ui/textarea';
+import { useAuth } from '../../../contexts/AuthContext';
 
 function LectureForm({ mode, initialData, levels, topics }) {
+  const { state } = useAuth();
+  const userRole = state?.user?.userRole?.toUpperCase();
+  const userLevel = state?.user?.levelId;
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -244,7 +248,7 @@ function LectureForm({ mode, initialData, levels, topics }) {
                     Chọn cấp độ
                   </SelectItem>
                   {levels
-                    .filter((level) => level.levelId !== 'null')
+                    .filter((level) => level.levelId !== 'null' && (userRole !== 'CONTRIBUTOR' || level.levelId === userLevel))
                     .map((level) => (
                       <SelectItem
                         key={level.levelId}

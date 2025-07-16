@@ -5,17 +5,14 @@ import { useToast } from '../../contexts/ToastContext';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { LevelService } from '../../services/LevelService';
 import { UserService } from '../../services/UserService';
+import { USER_ROLES } from '../../utils/constants';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [levels, setLevels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-
-  const roles = [
-    { value: 'USER', label: 'USER' },
-    { value: 'CONTRIBUTOR', label: 'CONTRIBUTOR' },
-  ];
+  const roles = USER_ROLES;
 
   useEffect(() => {
     let isMounted = true;
@@ -23,7 +20,10 @@ export default function AdminUsersPage() {
     async function fetchData() {
       try {
         if (isMounted) {
-          const [usersResData, levelsResData] = await Promise.all([UserService.getUsers(), LevelService.getLevels()]);
+          const [usersResData, levelsResData] = await Promise.all([
+            UserService.getUsers(),
+            LevelService.getLevels(),
+          ]);
           setUsers(
             usersResData.data?.map((user) => ({
               userId: user.userId,
@@ -45,10 +45,10 @@ export default function AdminUsersPage() {
           );
         }
       } catch (error) {
-        const msg = error.response?.data?.message || error.message || 'Canot fetch users or levels';
+        const msg = error.response?.data?.message || error.message || 'Error fetching users data';
         if (isMounted) {
           toast.error({
-            title: 'Fetch Error',
+            title: 'User Error',
             description: msg,
           });
         }

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   BookOpen,
   CircleCheck,
-  ExternalLink,
   Eye,
   FileText,
   MoreVertical,
@@ -24,8 +23,15 @@ import {
   AlertDialogTrigger,
 } from '../../ui/alert-dialog';
 import { Badge } from '../../ui/badge';
-import { Button } from '../../ui/button.jsx';
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
+import { Button } from '../../ui/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../../ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,33 +46,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '../../ui/table';
 import { Textarea } from '../../ui/textarea';
 
-function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny, userRole }) {
+function ExerciseTable({ exercises, lectures, onDelete, onApprove, onDeny, userRole, selectedLecture }) {
   const [rejectedReason, setRejectedReason] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const pageSizes = [5, 10, 20];
-  const totalItems = lectures?.length || 0;
+  const totalItems = exercises?.length || 0;
   const totalPages = Math.ceil(totalItems / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
-  const paginatedLectures = lectures?.slice(startIndex, endIndex) || [];
+  const paginatedExercises = exercises?.slice(startIndex, endIndex) || [];
 
-  const getLevelName = (id) => {
-    const level = levels.find((level) => level.levelId === id);
-    return level ? level.name : 'Chưa có cấp độ';
-  };
-
-  const getTopicName = (id) => {
-    const topic = topics.find((topic) => topic.topicId === id);
-    return topic ? topic.name : 'Chưa có chủ đề';
+  const getLectureName = (id) => {
+    const lecture = lectures.find((l) => l.lectureId === id);
+    return lecture ? lecture.name : 'Chưa có bài học';
   };
 
   const getCreatorName = (creator) => {
     if (!creator) return 'Admin';
-    if (creator.userRole && creator.userRole.toUpperCase() === 'ADMIN') return 'Admin';
     return creator.fullname || creator.username || 'Không xác định';
   };
 
@@ -90,7 +90,7 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny, u
                 {status}
               </Badge>
             </DialogTrigger>
-            <DialogContent className="max-w-lg shadow-2xl rounded-2xl overflow-hidden" closeDisabled={true}>
+            <DialogContent className="sm:max-w-lg border-0 shadow-2xl rounded-2xl overflow-hidden" closeDisabled={true}>
               <DialogHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 -m-6 mb-4">
                 <div className="flex items-center justify-between">
                   <DialogTitle className="text-lg font-semibold">Lý do bị từ chối</DialogTitle>
@@ -100,9 +100,7 @@ function LectureTable({ lectures, levels, topics, onDelete, onApprove, onDeny, u
                 </div>
               </DialogHeader>
               <div className="px-1 pb-2">
-                <div className="text-sm text-red-800 whitespace-preක
-
-System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
+                <div className="text-sm text-red-800 whitespace-pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
               </div>
             </DialogContent>
           </Dialog>
@@ -131,7 +129,7 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [lectures]);
+  }, [exercises]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -153,10 +151,22 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
     return (
       <div className="flex flex-col items-center justify-center text-center py-16 px-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
         <FileText className="h-16 w-16 text-gray-300 mb-4" />
-        <h3 className="text-lg font-medium text-gray-600 mb-1">Không có bài học nào</h3>
+        <h3 className="text-lg font-medium text-gray-600 mb-1">Không có bài luyện tập nào</h3>
         <p className="text-gray-500 mb-4 max-w-md">
-          Không tìm thấy bài học nào phù hợp với điều kiện tìm kiếm. Hãy thử điều chỉnh bộ lọc hoặc thêm bài học mới.
+          Không tìm thấy bài luyện tập nào phù hợp. Hãy thử điều chỉnh bộ lọc hoặc thêm bài luyện tập mới.
         </p>
+        {selectedLecture !== null && selectedLecture !== 'all' && (
+          <Link
+            className="group relative border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-400 hover:bg-purple-50/30 transition-all cursor-pointer"
+            to={`/exercises/add${selectedLecture ? `?lecture=${selectedLecture}` : ''}`}
+          >
+            <div className="flex items-center justify-center py-4 px-5">
+              <div className="flex items-center space-x-2 text-gray-500 group-hover:text-purple-600">
+                <span className="text-sm font-medium">Thêm bài luyện tập mới</span>
+              </div>
+            </div>
+          </Link>
+        )}
       </div>
     );
   }
@@ -167,11 +177,12 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-gray-200 to-gray-300 border-b hover:bg-gray-300 border-gray-200">
-              <TableHead className="py-3 font-semibold text-gray-700 w-[300px] rounded-tl-lg">Tên bài học</TableHead>
-              <TableHead className="text-center py-3 font-semibold text-gray-700 w-[120px]">Cấp độ</TableHead>
-              <TableHead className="text-center py-3 font-semibold text-gray-700 w-[150px]">Chủ đề</TableHead>
-              <TableHead className="text-center py-3 font-semibold text-gray-700 w-[80px]">STT</TableHead>
-              <TableHead className="text-center py-3 font-semibold text-gray-700 w-[100px]">Sections</TableHead>
+              <TableHead className="py-3 font-semibold text-gray-700 w-[250px] rounded-tl-lg">
+                Tên bài luyện tập
+              </TableHead>
+              <TableHead className="text-center py-3 font-semibold text-gray-700 w-[250px]">Bài học</TableHead>
+              <TableHead className="text-center py-3 font-semibold text-gray-700 w-[100px]">STT</TableHead>
+              <TableHead className="text-center py-3 font-semibold text-gray-700 w-[100px]">Số câu hỏi</TableHead>
               <TableHead className="text-center py-3 font-semibold text-gray-700 w-[120px]">Người tạo</TableHead>
               <TableHead className="text-center py-3 font-semibold text-gray-700 w-[120px]">Trạng thái</TableHead>
               <TableHead className="text-right py-3 font-semibold text-gray-700 w-[100px] rounded-tr-lg">
@@ -180,39 +191,28 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedLectures?.map((lecture, index) => (
+            {paginatedExercises?.map((exercise, index) => (
               <TableRow
-                key={lecture.lectureId}
-                className={`hover:bg-violet-300/30 border-b border-x  ${index % 2 === 0 ? 'bg-white' : 'bg-gray-100/40'}`}
+                key={exercise.exerciseId}
+                className={`hover:bg-violet-300/30 border-b border-x ${index % 2 === 0 ? 'bg-white' : 'bg-gray-100/40'}`}
               >
-                <TableCell className="py-4 w-[300px]">
+                <TableCell className="py-4 w-[250px]">
                   <div className="flex items-center">
                     <BookOpen className="h-5 w-5 text-purple-400 mr-3 flex-shrink-0" />
-                    <span className="font-medium text-gray-900 line-clamp-2">{lecture.name}</span>
+                    <span className="font-medium text-gray-900 line-clamp-2">{exercise.exerciseName}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-center py-4 w-[120px]">
-                  <Badge
-                    variant="outline"
-                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 px-2 py-1 cursor-default text-center whitespace-normal break-words max-w-full"
-                  >
-                    {getLevelName(lecture.levelId)}
-                  </Badge>
+                <TableCell className="text-center py-4 w-[250px]">
+                  <span className="text-purple-700 px-1 text-center whitespace-normal break-words font-semibold text-sm">
+                    {getLectureName(exercise.lectureId)}
+                  </span>
                 </TableCell>
-                <TableCell className="text-center py-4 w-[150px]">
-                  <Badge
-                    variant="outline"
-                    className="bg-purple-50 text-purple-700 hover:bg-purple-100 px-2 py-1 cursor-default text-center whitespace-normal break24-words max-w-full"
-                  >
-                    {getTopicName(lecture.topicId)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center py-4 w-[80px]">
+                <TableCell className="text-center py-4 w-[100px]">
                   <Badge
                     variant="outline"
                     className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-2 py-0.5 cursor-default font-medium text-center whitespace-normal break-words max-w-full"
                   >
-                    {lecture.ordinalNumber}
+                    {exercise.ordinalNumber}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center py-4 w-[100px]">
@@ -220,23 +220,23 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
                     variant="outline"
                     className="bg-green-50 text-green-700 hover:bg-green-100 px-2 py-0.5 cursor-default font-medium text-center whitespace-normal break-words max-w-full"
                   >
-                    {lecture.sections?.length || 0}
+                    {exercise.totalQuestions}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center py-4 w-[120px]">
                   <Badge
                     variant="outline"
                     className={`px-2 py-1 cursor-default text-center whitespace-normal break-words max-w-full ${
-                      lecture.creator
+                      exercise.creator
                         ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
                         : 'bg-red-50 text-red-700 hover:bg-red-100'
                     }`}
                   >
-                    {getCreatorName(lecture.creator)}
+                    {getCreatorName(exercise.creator)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center py-4 w-[120px]">
-                  {getStatusBadge(lecture.status, lecture.rejectedReason)}
+                  {getStatusBadge(exercise.status, exercise.rejectedReason)}
                 </TableCell>
                 <TableCell className="text-right py-3 w-[100px]">
                   <DropdownMenu>
@@ -255,17 +255,17 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
                     >
                       <DropdownMenuItem asChild>
                         <Link
-                          to={`/lectures/${lecture.lectureId}`}
+                          to={`/exercises/${exercise.exerciseId}`}
                           className="text-blue-600 focus:text-blue-600 rounded-lg"
                         >
                           <Eye className="mr-2 h-4 w-4" />
                           Thông tin
                         </Link>
                       </DropdownMenuItem>
-                      {(userRole.toUpperCase() === 'ADMIN' || lecture.status !== 'VERIFIED') && (
+                      {(userRole.toUpperCase() === 'ADMIN' || exercise.status !== 'VERIFIED') && (
                         <DropdownMenuItem asChild>
                           <Link
-                            to={`/lectures/${lecture.lectureId}/edit`}
+                            to={`/exercises/${exercise.exerciseId}/edit`}
                             className="text-indigo-600 focus:text-indigo-600 rounded-lg"
                           >
                             <Pencil className="mr-2 h-4 w-4" />
@@ -273,17 +273,8 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
                           </Link>
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem asChild>
-                        <Link
-                          to={`/exercises?lecture=${lecture.lectureId}`}
-                          className="text-pink-600 focus:text-pink-600 rounded-lg"
-                        >
-                          <ExternalLink className="mr-2 h-4 w-4" />
-                          Bài tập
-                        </Link>
-                      </DropdownMenuItem>
                       {userRole.toUpperCase() === 'ADMIN' &&
-                        (lecture.status === 'PENDING' || lecture.status === 'DENIED') && (
+                        (exercise.status === 'PENDING' || exercise.status === 'DENIED') && (
                         <>
                           <DropdownMenuSeparator className="bg-gray-200" />
                           <AlertDialog>
@@ -293,23 +284,23 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
                                 onSelect={(e) => e.preventDefault()}
                               >
                                 <CircleCheck className="mr-2 h-4 w-4" />
-                                  Phê duyệt
+                                Phê duyệt
                               </DropdownMenuItem>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
                               <AlertDialogHeader>
                                 <AlertDialogTitle className="text-xl">Xác nhận duyệt</AlertDialogTitle>
                                 <AlertDialogDescription className="text-gray-600">
-                                    Bạn có chắc chắn muốn phê duyệt bài học &quot;{lecture.name}&quot;?
+                                  Bạn có chắc chắn muốn phê duyệt bài luyện tập "{exercise.exerciseName}"?
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel className="rounded-lg hover:bg-gray-100">Hủy</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => onApprove(lecture.lectureId)}
+                                  onClick={() => onApprove(exercise.exerciseId)}
                                   className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg"
                                 >
-                                    Phê duyệt
+                                  Phê duyệt
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -321,14 +312,14 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
                                 onSelect={(e) => e.preventDefault()}
                               >
                                 <XCircle className="mr-2 h-4 w-4" />
-                                  Từ chối
+                                Từ chối
                               </DropdownMenuItem>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
                               <AlertDialogHeader>
-                                <AlertDialogTitle className="text-xl">Xác nhận từ chối</AlertDialogTitle>
+                                <AlertDialogTitle className="text-xl">Từ chối duyệt</AlertDialogTitle>
                                 <AlertDialogDescription className="text-gray-600">
-                                    Vui lòng nhập lý do từ chối duyệt bài học &quot;{lecture.name}&quot;.
+                                  Vui lòng nhập lý do từ chối duyệt bài luyện tập "{exercise.exerciseName}".
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <div className="py-4">
@@ -336,7 +327,7 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
                                   value={rejectedReason}
                                   onChange={(e) => setRejectedReason(e.target.value)}
                                   placeholder="Nhập lý do từ chối"
-                                  className="h-24 text-gray-700"
+                                  className="h-12 text-gray-700"
                                 />
                               </div>
                               <AlertDialogFooter>
@@ -346,23 +337,23 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
                                   }}
                                   className="rounded-lg hover:bg-gray-100"
                                 >
-                                    Hủy
+                                  Hủy
                                 </AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => {
-                                    onDeny(lecture?.lectureId, rejectedReason);
+                                    onDeny(exercise.exerciseId, rejectedReason);
                                     setRejectedReason('');
                                   }}
                                   className="bg-orange-600 hover:bg-orange-700 text-white"
                                 >
-                                    Xác nhận
+                                  Xác nhận
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
                         </>
                       )}
-                      {(userRole.toUpperCase() === 'ADMIN' || lecture.status !== 'VERIFIED') && (
+                      {(userRole.toUpperCase() === 'ADMIN' || exercise.status !== 'VERIFIED') && (
                         <>
                           <DropdownMenuSeparator className="bg-gray-200" />
                           <AlertDialog>
@@ -379,14 +370,13 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
                               <AlertDialogHeader>
                                 <AlertDialogTitle className="text-xl">Xác nhận xóa</AlertDialogTitle>
                                 <AlertDialogDescription className="text-gray-600">
-                                  Bạn có chắc chắn muốn xóa bài học &quot;{lecture.name}&quot;? Hành động này không thể
-                                  hoàn tác và có thể ảnh hưởng đến các bài tập liên quan.
+                                  Bạn có chắc chắn muốn xóa bài luyện tập "{exercise.exerciseName}"? Hành động này không thể hoàn tác.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel className="rounded-lg hover:bg-gray-100">Hủy</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => onDelete(lecture.lectureId)}
+                                  onClick={() => onDelete(exercise.exerciseId)}
                                   className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg"
                                 >
                                   Xóa
@@ -472,4 +462,4 @@ System: pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
   );
 }
 
-export default LectureTable;
+export default ExerciseTable;

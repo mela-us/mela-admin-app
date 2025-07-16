@@ -1,99 +1,56 @@
-import { Badge } from '../../ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
 
 function ContributorStats({ lectureContributions, exerciseContributions }) {
   return (
-    <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-50/20">
+    <Card className="border-indigo-200 shadow-lg bg-gradient-to-b from-white to-indigo-100/80/20">
       <CardHeader className="bg-indigo-200/50 border-b border-indigo-200">
         <CardTitle className="text-xl font-bold text-gray-700/90">Thông tin đóng góp tổng quan</CardTitle>
         <CardDescription className="text-gray-700/80">Các số liệu đóng góp của contributor cho app</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 pt-6">
+      <CardContent className="pt-6">
         {lectureContributions || exerciseContributions ? (
-          <div className="grid grid-cols-3 gap-y-4 gap-x-36">
+          <div className="grid grid-cols-3 gap-4">
             {lectureContributions && (
               <>
-                <div>
-                  <p className="text-sm font-semibold text-indigo-900">Bài giảng đã tạo</p>
-                  <Badge
-                    variant="outline"
-                    className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1 cursor-default text-sm font-medium"
-                  >
-                    {lectureContributions.totalCreatedNumber.toLocaleString()}
-                  </Badge>
+                <div className="p-3 bg-gradient-to-r from-blue-100/80 to-blue-200/80 rounded-lg">
+                  <p className="text-sm font-semibold text-blue-900 mb-1">Bài giảng đã tạo</p>
+                  <div className="text-2xl font-bold text-blue-700">{lectureContributions.totalCreatedNumber.toLocaleString()}</div>
+                  <p className="text-xs text-blue-600">bài giảng</p>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-indigo-900">Bài giảng được duyệt</p>
-                  <Badge
-                    variant="outline"
-                    className="bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1 cursor-default text-sm font-medium"
-                  >
-                    {lectureContributions.verifiedNumber.toLocaleString()}
-                  </Badge>
+                <div className="p-3 bg-gradient-to-r from-green-100/80 to-green-200/80 rounded-lg">
+                  <p className="text-sm font-semibold text-green-900 mb-1">Bài giảng được duyệt</p>
+                  <div className="text-2xl font-bold text-green-700">{lectureContributions.verifiedNumber.toLocaleString()}</div>
+                  <p className="text-xs text-green-600">bài giảng được duyệt</p>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-indigo-900">Lượt truy cập bài giảng</p>
-                  <Badge
-                    variant="outline"
-                    className="bg-purple-50 text-purple-700 hover:bg-purple-100 px-3 py-1 cursor-default text-sm font-medium"
-                  >
-                    {lectureContributions.accessedContentNumber.toLocaleString()}
-                  </Badge>
+                <div className="p-3 bg-gradient-to-r from-purple-100/80 to-purple-200/80 rounded-lg">
+                  <p className="text-sm font-semibold text-purple-900 mb-1">Lượt truy cập vào bài giảng</p>
+                  <div className="text-2xl font-bold text-purple-700">{lectureContributions.accessedContentNumber.toLocaleString()}</div>
+                  <p className="text-xs text-purple-600">lượt truy cập</p>
                 </div>
               </>
             )}
             {exerciseContributions && (
               <>
-                <div>
-                  <p className="text-sm font-semibold text-indigo-900">Bài tập đã tạo</p>
-                  <Badge
-                    variant="outline"
-                    className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1 cursor-default text-sm font-medium"
-                  >
-                    {exerciseContributions.totalCreatedNumber.toLocaleString()}
-                  </Badge>
+                <div className="p-3 bg-gradient-to-r from-indigo-100/80 to-indigo-200/80 rounded-lg">
+                  <p className="text-sm font-semibold text-indigo-900 mb-1">Bài luyện tập đã tạo</p>
+                  <div className="text-2xl font-bold text-indigo-700">{exerciseContributions.totalCreatedNumber.toLocaleString()}</div>
+                  <p className="text-xs text-indigo-600">bài luyện tập</p>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-indigo-900">Bài tập được duyệt</p>
-                  <Badge
-                    variant="outline"
-                    className="bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1 cursor-default text-sm font-medium"
-                  >
-                    {exerciseContributions.verifiedNumber.toLocaleString()}
-                  </Badge>
+                <div className="p-3 bg-gradient-to-r from-amber-100/80 to-amber-200/80 rounded-lg">
+                  <p className="text-sm font-semibold text-amber-900 mb-1">Bài luyện tập được duyệt</p>
+                  <div className="text-2xl font-bold text-amber-700">{exerciseContributions.verifiedNumber.toLocaleString()}</div>
+                  <p className="text-xs text-amber-600">bài luyện tập được duyệt</p>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-indigo-900">Lượt truy cập bài tập</p>
-                  <Badge
-                    variant="outline"
-                    className="bg-purple-50 text-purple-700 hover:bg-purple-100 px-3 py-1 cursor-default text-sm font-medium"
-                  >
-                    {exerciseContributions.accessedContentNumber.toLocaleString()}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-indigo-900">Câu hỏi đã tạo</p>
-                  <Badge
-                    variant="outline"
-                    className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-3 py-1 cursor-default text-sm font-medium"
-                  >
-                    {exerciseContributions.totalQuestionCreatedNumber.toLocaleString()}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-indigo-900">Câu hỏi được duyệt</p>
-                  <Badge
-                    variant="outline"
-                    className="bg-pink-50 text-pink-700 hover:bg-pink-100 px-3 py-1 cursor-default text-sm font-medium"
-                  >
-                    {exerciseContributions.totalQuestionVerifiedNumber.toLocaleString()}
-                  </Badge>
+                <div className="p-3 bg-gradient-to-r from-pink-100/80 to-pink-200/80 rounded-lg">
+                  <p className="text-sm font-semibold text-pink-900 mb-1">Lượt truy cập vào bài luyện tập</p>
+                  <div className="text-2xl font-bold text-pink-700">{exerciseContributions.accessedContentNumber.toLocaleString()}</div>
+                  <p className="text-xs text-pink-600">lượt truy cập</p>
                 </div>
               </>
             )}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-4">Chưa có dữ liệu đóng góp</p>
+          <p className="text-gray-100/800 text-center py-4">Chưa có dữ liệu đóng góp</p>
         )}
       </CardContent>
     </Card>

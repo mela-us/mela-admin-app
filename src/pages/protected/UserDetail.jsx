@@ -33,7 +33,10 @@ export default function UserDetailPage() {
     async function fetchData() {
       try {
         if (isMounted) {
-          const [userRes, levelsRes] = await Promise.all([UserService.getUserInfo(id), LevelService.getLevels()]);
+          const [userRes, levelsRes] = await Promise.all([
+            UserService.getUserInfo(id),
+            LevelService.getLevels(),
+          ]);
           setUser(userRes.data || null);
           setLevels([...(levelsRes.data || [])]);
 
@@ -64,7 +67,7 @@ export default function UserDetailPage() {
         const msg = error.response?.data?.message || error.message || 'Error fetching user data';
         if (isMounted) {
           toast.error({
-            title: 'Fetch Error',
+            title: 'User Error',
             description: msg,
           });
         }

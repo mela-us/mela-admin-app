@@ -444,7 +444,7 @@ function TopicList({ topics, setTopics }) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="w-40 bg-white/95 backdrop-blur-sm border-white/20 shadow-xl rounded-xl"
+                          className="w-40 bg-white backdrop-blur-sm border-white/20 shadow-xl rounded-xl"
                         >
                           <>
                             <AlertDialog>

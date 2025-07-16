@@ -1,67 +1,31 @@
 import { useEffect, useState } from 'react';
-import {
-  ArrowDownAZ,
-  ArrowUpZA,
-  BookOpen,
-  CircleCheck,
-  Eye,
-  FileText,
-  MoreVertical,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-  X,
-  XCircle,
-} from 'lucide-react';
+import { ArrowDownAZ, ArrowUpZA, BookOpen, Plus, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '../../../components/ui/alert-dialog';
-import { Badge } from '../../../components/ui/badge';
-import { Button } from '../../../components/ui/button';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../../../components/ui/dialog';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
+import { truncateText } from '../../../lib/utils';
+import { ExerciseService } from '../../../services/ExerciseService';
+import { Badge } from '../../ui/badge';
+import { Button } from '../../ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../../../components/ui/dropdown-menu';
-import { Input } from '../../../components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
-import { Textarea } from '../../../components/ui/textarea';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useToast } from '../../../contexts/ToastContext';
-import { truncateText } from '../../../lib/utils';
-import { ExerciseService } from '../../../services/ExerciseService';
+} from '../../ui/dropdown-menu';
+import { Input } from '../../ui/input';
+import ExerciseTable from './ExerciseTable';
 
-export default function ExerciseList({ exercises, setExercises, lectures, contributors, lectureParam }) {
+function ExerciseList({ exercises, setExercises, lectures, contributors, lectureParam }) {
   const { state } = useAuth();
   const { userRole } = state.user;
-  const [rejectedReason, setRejectedReason] = useState('');
+  const { toast } = useToast();
   const [selectedLectureFilter, setSelectedLectureFilter] = useState(lectureParam || 'all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('all');
   const [selectedCreatorFilter, setSelectedCreatorFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
-  const { toast } = useToast();
 
   useEffect(() => {
     setSelectedLectureFilter(lectureParam || 'all');
@@ -77,7 +41,7 @@ export default function ExerciseList({ exercises, setExercises, lectures, contri
       const { message } = resData;
       setExercises(exercises.filter((ex) => ex.exerciseId !== id));
       toast.success({
-        title: 'Deelete Exercise Success',
+        title: 'Delete Exercise Success',
         description: message,
       });
     } catch (error) {
@@ -112,14 +76,14 @@ export default function ExerciseList({ exercises, setExercises, lectures, contri
   };
 
   const handleDenyExercise = async (id, reason) => {
-    reason = reason?.trim();
+    const trimmedReason = reason?.trim();
     try {
-      const resData = await ExerciseService.denyExercise(id, reason);
+      const resData = await ExerciseService.denyExercise(id, trimmedReason);
       const { message } = resData;
       setExercises(
         exercises.map((exercise) =>
           exercise.exerciseId === id
-            ? { ...exercise, status: 'DENIED', rejectedReason: reason ?? 'Liên hệ quản trị viên để biết thêm chi tiết' }
+            ? { ...exercise, status: 'DENIED', rejectedReason: trimmedReason ?? 'Liên hệ quản trị viên để biết thêm chi tiết' }
             : exercise,
         ),
       );
@@ -143,6 +107,7 @@ export default function ExerciseList({ exercises, setExercises, lectures, contri
 
   const getCreatorName = (creator, maxLength = 100) => {
     if (!creator) return 'Admin';
+    if (creator.userRole?.toUpperCase() === 'ADMIN') return 'Admin';
     return truncateText(creator.fullname || creator.username || 'Contributor', maxLength);
   };
 
@@ -150,72 +115,25 @@ export default function ExerciseList({ exercises, setExercises, lectures, contri
     return exercises?.filter((exercise) => status === 'all' || exercise.status === status)?.length || 0;
   };
 
-  const getStatusBadge = (status, reason) => {
-    reason = reason?.trim() || 'Liên hệ quản trị viên để biết thêm chi tiết.';
-    const styles = {
-      PENDING: 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white',
-      DENIED:
-        'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md hover:bg-red-700 cursor-pointer ring-2 ring-red-800',
-      VERIFIED: 'bg-gradient-to-r from-green-400 to-emerald-500 text-white',
-    };
-    return (
-      <div className="flex items-center justify-center gap-2">
-        {status === 'DENIED' && reason ? (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Badge
-                variant="outline"
-                className={`px-3 py-1 text-xs font-semibold ${styles[status] || 'bg-gray-200 text-gray-800'} text-center whitespace-normal break-words max-w-[100px] transition-all duration-200`}
-              >
-                {status}
-              </Badge>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg border-0 shadow-2xl rounded-2xl overflow-hidden" closeDisabled={true}>
-              <DialogHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 -m-6 mb-4">
-                <div className="flex items-center justify-between">
-                  <DialogTitle className="text-lg font-semibold">Lý do bị từ chối</DialogTitle>
-                  <DialogClose className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition-colors">
-                    <X className="h-5 w-5" />
-                  </DialogClose>
-                </div>
-              </DialogHeader>
-              <div className="px-1 pb-2">
-                <div className="text-sm text-red-800 whitespace-pre-wrap leading-relaxed p-1 rounded-lg">{reason}</div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        ) : (
-          <Badge
-            variant="outline"
-            className={`px-3 py-1 text-xs font-semibold ${styles[status] || 'bg-gray-200 text-gray-800'} text-center whitespace-normal break-words max-w-[100px]`}
-          >
-            {status}
-          </Badge>
-        )}
-      </div>
-    );
-  };
-
-  const filteredExercises =
-    exercises
-      ?.filter((exercise) => {
-        const lectureMatch = selectedLectureFilter === 'all' || exercise.lectureId === selectedLectureFilter;
-        const statusMatch = selectedStatusFilter === 'all' || exercise.status === selectedStatusFilter;
-        const creatorMatch =
-          userRole.toUpperCase() === 'ADMIN'
-            ? selectedCreatorFilter === 'all' ||
-              (selectedCreatorFilter === 'admin' && !exercise.createdBy) ||
-              (exercise.createdBy && exercise.createdBy === selectedCreatorFilter)
-            : true;
-        const searchMatch =
-          searchQuery === '' || exercise.exerciseName?.toLowerCase().includes(searchQuery.toLowerCase());
-        return lectureMatch && statusMatch && creatorMatch && searchMatch;
-      })
-      ?.sort((a, b) => {
-        const aValue = a.exerciseName?.toLowerCase() || '';
-        const bValue = b.exerciseName?.toLowerCase() || '';
-        return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-      }) || [];
+  const filteredExercises = exercises
+    ?.filter((exercise) => {
+      const lectureMatch = selectedLectureFilter === 'all' || exercise.lectureId === selectedLectureFilter;
+      const statusMatch = selectedStatusFilter === 'all' || exercise.status === selectedStatusFilter;
+      const creatorMatch =
+        userRole.toUpperCase() === 'ADMIN'
+          ? selectedCreatorFilter === 'all' ||
+            (selectedCreatorFilter === 'admin' && !exercise.createdBy) ||
+            (exercise?.createdBy === selectedCreatorFilter || exercise?.creator?.userRole?.toLowerCase() === selectedCreatorFilter)
+          : true;
+      const searchMatch =
+        searchQuery === '' || exercise.exerciseName?.toLowerCase().includes(searchQuery.toLowerCase());
+      return lectureMatch && statusMatch && creatorMatch && searchMatch;
+    })
+    ?.sort((a, b) => {
+      const aValue = a.exerciseName?.toLowerCase() || '';
+      const bValue = b.exerciseName?.toLowerCase() || '';
+      return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+    }) || [];
 
   const clearFilters = () => {
     setSelectedLectureFilter('all');
@@ -418,253 +336,17 @@ export default function ExerciseList({ exercises, setExercises, lectures, contri
         )}
       </div>
 
-      {filteredExercises?.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center py-16 px-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-          <FileText className="h-16 w-16 text-gray-300 mb-4" />
-          <h3 className="text-lg font-medium text-gray-600 mb-1">Không có bài luyện tập nào</h3>
-          <p className="text-gray-500 mb-4 max-w-md">
-            Không tìm thấy bài luyện tập nào phù hợp. Hãy thử điều chỉnh bộ lọc hoặc thêm bài luyện tập mới.
-          </p>
-          <Link
-            className="group relative border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-400 hover:bg-purple-50/30 transition-all cursor-pointer"
-            to={`/exercises/add${selectedLectureFilter ? `?lecture=${selectedLectureFilter}` : ''}`}
-          >
-            <div className="flex items-center justify-center py-4 px-5">
-              <div className="flex items-center space-x-2 text-gray-500 group-hover:text-purple-600">
-                <Plus className="h-5 w-5" />
-                <span className="text-sm font-medium">Thêm bài luyện tập mới</span>
-              </div>
-            </div>
-          </Link>
-        </div>
-      ) : (
-        <div className="overflow-x-auto border-b border-gray-200 shadow-xl">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gradient-to-r from-gray-200 to-gray-300 border-b hover:bg-gray-300 border-gray-200">
-                <TableHead className="py-3 font-semibold text-gray-700 w-[300px] rounded-tl-lg">
-                  Tên bài luyện tập
-                </TableHead>
-                <TableHead className="text-center py-3 font-semibold text-gray-700 w-[150px]">Bài học</TableHead>
-                <TableHead className="text-center py-3 font-semibold text-gray-700 w-[100px]">STT</TableHead>
-                <TableHead className="text-center py-3 font-semibold text-gray-700 w-[100px]">Số câu hỏi</TableHead>
-                <TableHead className="text-center py-3 font-semibold text-gray-700 w-[120px]">Người tạo</TableHead>
-                <TableHead className="text-center py-3 font-semibold text-gray-700 w-[120px]">Trạng thái</TableHead>
-                <TableHead className="text-right py-3 font-semibold text-gray-700 w-[100px] rounded-tr-lg">
-                  Thao tác
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredExercises.map((exercise, index) => (
-                <TableRow
-                  key={exercise.exerciseId}
-                  className={`hover:bg-violet-300/30 border-b border-x ${index % 2 === 0 ? 'bg-white' : 'bg-gray-100/80'}`}
-                >
-                  <TableCell className="py-4 w-[300px]">
-                    <div className="flex items-center">
-                      <BookOpen className="h-5 w-5 text-indigo-400 mr-3 flex-shrink-0" />
-                      <span className="font-medium text-gray-900 line-clamp-2">{exercise.exerciseName}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center py-4 w-[150px]">
-                    <Badge
-                      variant="outline"
-                      className="bg-blue-50 text-blue-700 hover:bg-blue-100 px-2 py-1 cursor-default text-center whitespace-normal break-words max-w-full"
-                    >
-                      {getLectureName(exercise.lectureId)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center py-4 w-[100px]">
-                    <Badge
-                      variant="outline"
-                      className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-2 py-0.5 cursor-default font-medium text-center whitespace-normal break-words max-w-full"
-                    >
-                      {exercise.ordinalNumber}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center py-4 w-[100px]">
-                    <Badge
-                      variant="outline"
-                      className="bg-green-50 text-green-700 hover:bg-green-100 px-2 py-0.5 cursor-default font-medium text-center whitespace-normal break-words max-w-full"
-                    >
-                      {exercise.totalQuestions}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center py-4 w-[120px]">
-                    <Badge
-                      variant="outline"
-                      className={`px-2 py-1 cursor-default text-center whitespace-normal break-words max-w-full ${
-                        exercise.creator
-                          ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-                          : 'bg-red-50 text-red-700 hover:bg-red-100'
-                      }`}
-                    >
-                      {getCreatorName(exercise.creator)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center py-4 w-[120px]">
-                    {getStatusBadge(exercise.status, exercise.rejectedReason)}
-                  </TableCell>
-                  <TableCell className="text-right py-3 w-[100px]">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 bg-gray-500 backdrop-blur-sm hover:bg-gray-600 text-gray-100 hover:text-white rounded-full shadow-lg mr-2"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="w-40 bg-white/95 backdrop-blur-sm border-white/20 shadow-xl rounded-xl"
-                      >
-                        <DropdownMenuItem asChild>
-                          <Link
-                            to={`/exercises/${exercise.exerciseId}`}
-                            className="text-blue-600 focus:text-blue-600 rounded-lg"
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            Thông tin
-                          </Link>
-                        </DropdownMenuItem>
-                        {(userRole.toUpperCase() === 'ADMIN' || exercise.status !== 'VERIFIED') && (
-                          <DropdownMenuItem asChild>
-                            <Link
-                              to={`/exercises/${exercise.exerciseId}/edit`}
-                              className="text-indigo-600 focus:text-indigo-600 rounded-lg"
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Chỉnh sửa
-                            </Link>
-                          </DropdownMenuItem>
-                        )}
-                        {userRole.toUpperCase() === 'ADMIN' &&
-                          (exercise.status === 'PENDING' || exercise.status === 'DENIED') && (
-                          <>
-                            <DropdownMenuSeparator className="bg-gray-200" />
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem
-                                  className="text-green-600 focus:text-green-600 rounded-lg"
-                                  onSelect={(e) => e.preventDefault()}
-                                >
-                                  <CircleCheck className="mr-2 h-4 w-4" />
-                                    Phê duyệt
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-xl">Xác nhận duyệt</AlertDialogTitle>
-                                  <AlertDialogDescription className="text-gray-600">
-                                      Bạn có chắc chắn muốn phê duyệt bài luyện tập &quot;{exercise.exerciseName}&quot;?
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel className="rounded-lg hover:bg-gray-100">Hủy</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleApproveExercise(exercise.exerciseId)}
-                                    className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg"
-                                  >
-                                      Phê duyệt
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem
-                                  className="text-orange-600 focus:text-orange-600 rounded-lg"
-                                  onSelect={(e) => e.preventDefault()}
-                                >
-                                  <XCircle className="mr-2 h-4 w-4" />
-                                    Từ chối
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-xl">Từ chối duyệt</AlertDialogTitle>
-                                  <AlertDialogDescription className="text-gray-600">
-                                      Vui lòng nhập lý do từ chối duyệt bài luyện tập &quot;{exercise.exerciseName}
-                                      &quot;.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <div className="py-4">
-                                  <Textarea
-                                    value={rejectedReason}
-                                    onChange={(e) => setRejectedReason(e.target.value)}
-                                    placeholder="Nhập lý do từ chối"
-                                    className="h-12 text-gray-700"
-                                  />
-                                </div>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel
-                                    onClick={() => {
-                                      setRejectedReason('');
-                                    }}
-                                    className="rounded-lg hover:bg-gray-100"
-                                  >
-                                      Hủy
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => {
-                                      handleDenyExercise(exercise.exerciseId, rejectedReason);
-                                      setRejectedReason('');
-                                    }}
-                                    className="bg-orange-600 hover:bg-orange-700 text-white"
-                                  >
-                                      Xác nhận
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </>
-                        )}
-                        {(userRole.toUpperCase() === 'ADMIN' || exercise.status !== 'VERIFIED') && (
-                          <>
-                            <DropdownMenuSeparator className="bg-gray-200" />
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem
-                                  className="text-red-600 focus:text-red-600 rounded-lg"
-                                  onSelect={(e) => e.preventDefault()}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Xóa
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent className="rounded-xl border-0 shadow-2xl">
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-xl">Xác nhận xóa</AlertDialogTitle>
-                                  <AlertDialogDescription className="text-gray-600">
-                                    Bạn có chắc chắn muốn xóa bài luyện tập &quot;{exercise.exerciseName}&quot;? Hành
-                                    động này không thể hoàn tác.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel className="rounded-lg hover:bg-gray-100">Hủy</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDeleteExercise(exercise.exerciseId)}
-                                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg"
-                                  >
-                                    Xóa
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <ExerciseTable
+        exercises={filteredExercises}
+        lectures={lectures}
+        onDelete={handleDeleteExercise}
+        onApprove={handleApproveExercise}
+        onDeny={handleDenyExercise}
+        userRole={userRole}
+        selectedLecture={selectedLectureFilter}
+      />
     </div>
   );
 }
+
+export default ExerciseList;
