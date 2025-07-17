@@ -428,22 +428,86 @@ function ExerciseTable({ exercises, lectures, onDelete, onApprove, onDeny, userR
               Trước
             </Button>
             <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handlePageChange(page)}
-                  className={`w-10 h-10 ${
-                    currentPage === page
-                      ? 'bg-gray-600 text-white hover:bg-gray-700'
-                      : 'border-gray-300 bg-white hover:bg-gray-50 text-gray-600'
-                  } rounded-lg`}
-                  aria-label={`Trang ${page}`}
-                >
-                  {page}
-                </Button>
-              ))}
+              {totalPages <= 7 ? (
+                Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handlePageChange(page)}
+                    className={`w-10 h-10 ${
+                      currentPage === page
+                        ? 'bg-gray-600 text-white hover:bg-gray-700'
+                        : 'border-gray-300 bg-white hover:bg-gray-50 text-gray-600'
+                    } rounded-lg`}
+                    aria-label={`Trang ${page}`}
+                  >
+                    {page}
+                  </Button>
+                ))
+              ) : (
+                <>
+                  {/* Always show first page */}
+                  <Button
+                    variant={currentPage === 1 ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handlePageChange(1)}
+                    className={`w-10 h-10 ${
+                      currentPage === 1
+                        ? 'bg-gray-600 text-white hover:bg-gray-700'
+                        : 'border-gray-300 bg-white hover:bg-gray-50 text-gray-600'
+                    } rounded-lg`}
+                    aria-label="Trang 1"
+                  >
+                    1
+                  </Button>
+                  {/* Show ellipsis if currentPage > 4 */}
+                  {currentPage > 4 && (
+                    <span className="text-gray-600 px-2">...</span>
+                  )}
+                  {/* Show pages around currentPage */}
+                  {Array.from({ length: 5 }, (_, i) => {
+                    const page = currentPage - 2 + i;
+                    if (page > 1 && page < totalPages) {
+                      return (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handlePageChange(page)}
+                          className={`w-10 h-10 ${
+                            currentPage === page
+                              ? 'bg-gray-600 text-white hover:bg-gray-700'
+                              : 'border-gray-300 bg-white hover:bg-gray-50 text-gray-600'
+                          } rounded-lg`}
+                          aria-label={`Trang ${page}`}
+                        >
+                          {page}
+                        </Button>
+                      );
+                    }
+                    return null;
+                  }).filter(Boolean)}
+                  {/* Show ellipsis if currentPage < totalPages - 3 */}
+                  {currentPage < totalPages - 3 && (
+                    <span className="text-gray-600 px-2">...</span>
+                  )}
+                  {/* Always show last page */}
+                  <Button
+                    variant={currentPage === totalPages ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handlePageChange(totalPages)}
+                    className={`w-10 h-10 ${
+                      currentPage === totalPages
+                        ? 'bg-gray-600 text-white hover:bg-gray-700'
+                        : 'border-gray-300 bg-white hover:bg-gray-50 text-gray-600'
+                    } rounded-lg`}
+                    aria-label={`Trang ${totalPages}`}
+                  >
+                    {totalPages}
+                  </Button>
+                </>
+              )}
             </div>
             <Button
               variant="outline"

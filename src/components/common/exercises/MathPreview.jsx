@@ -30,6 +30,7 @@ export default function MathPreview({ content }) {
         wordWrap: 'break-word',
         wordBreak: 'break-word',
         overflowWrap: 'break-word',
+        position: 'relative',
       }}
       dangerouslySetInnerHTML={{ __html: previewHtml }}
     />
